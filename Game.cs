@@ -34,6 +34,7 @@ namespace MonoGameJam3Entry
         World world = new World(Vector2.Zero);
 
         Bathtub bathtub;
+        Bathtub dummy_bathtub;
 
         DebugView dv;
 
@@ -55,11 +56,15 @@ namespace MonoGameJam3Entry
             cam = new Camera(new Vector2(0, 0));
             cam.Init();
             cam.Scale = Vector2.One * 0.5f;
-      ///      a.Play();
-       //     ss.Play();
-
+            ///      a.Play();
+            //     ss.Play();
+            var texture = LoadTexture("basecart.bmp");
             bathtub = new Bathtub(world);
-            bathtub.Texture = LoadTexture("basecart.bmp");
+            bathtub.Texture = texture;
+
+            dummy_bathtub = new Bathtub(world);
+            dummy_bathtub.Texture = texture;
+            dummy_bathtub.PlayerControlled = false;
             //bathtub.Position = new Vector2(gdm.PreferredBackBufferWidth/2, gdm.PreferredBackBufferHeight / 2);
             world.CreateEdge(new(-100, -100), new(100, -100));
             dv = new DebugView(world);
@@ -101,9 +106,14 @@ namespace MonoGameJam3Entry
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin(transformMatrix: cam.View(), samplerState: SamplerState.PointClamp);
-            spriteBatch.Draw(testpattern, Vector2.Zero,Color.Red);
+
+            for (int i = 0; i < 80; i++)
+            {
+                spriteBatch.Draw(testpattern, new Vector2(i%10,i/10) * 512, Color.Yellow);
+            }
             spriteBatch.Draw(bonk,Vector2.Zero,Color.Red);
             bathtub.Draw(gameTime);
+            dummy_bathtub.Draw(gameTime);
             spriteBatch.End();
 
             //cam.Scale = Vector2.One * PhysicsScale; 
@@ -131,7 +141,7 @@ namespace MonoGameJam3Entry
             byte[] data = new byte[t2d.Width * t2d.Height * 4];
             t2d.GetData(data);
             Span<Color> c = MemoryMarshal.Cast<byte, Color>(data.AsSpan());
-            for (int i = 0; i < c.Length; i++) if (c[i] == Color.Magenta || c[i] == new Color(206,0,206,255)) c[i] = Color.Transparent;
+            for (int i = 0; i < c.Length; i++) if (c[i] == Color.Magenta) c[i] = Color.Transparent;
             t2d.SetData(data);
             return t2d;
         }

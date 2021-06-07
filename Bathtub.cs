@@ -46,43 +46,65 @@ namespace MonoGameJam3Entry
         public Bathtub(World world)
         {
 
-            physicsBody = world.CreateEllipse(64/Game.PixelsPerMeter, 42/Game.PixelsPerMeter,8,2.25f,bodyType: BodyType.Dynamic);
+            physicsBody = world.CreateEllipse(64/Game.PixelsPerMeter, 42/Game.PixelsPerMeter,8,1,bodyType: BodyType.Dynamic);
             
             physicsBody.LinearDamping = 1f;
-            physicsBody.SetRestitution(1);
+            physicsBody.SetRestitution(0.7f);
             physicsBody.SetFriction(1.5f);
             physicsBody.FixedRotation = true;
         }
-        
+        bool Left, Right, Up, Down;
         public void Update(GameTime time)
         {
-           
+            Left = Right = Up = Down = false;
+
+            
+
             if (PlayerControlled)
             {
                 var stat = Keyboard.GetState();
-                if (stat.IsKeyDown(Keys.Left))
-                {
-                    Rotation -= (float)time.ElapsedGameTime.TotalSeconds * 200;
-                    physicsBody.ApplyLinearImpulse((float)time.ElapsedGameTime.TotalSeconds * 10 * -physicsBody.LinearVelocity * 2);
-                }
-                if (stat.IsKeyDown(Keys.Right))
-                {
-                    Rotation += (float)time.ElapsedGameTime.TotalSeconds * 200;
-                    physicsBody.ApplyLinearImpulse((float)time.ElapsedGameTime.TotalSeconds * 10 * -physicsBody.LinearVelocity * 2);
-                }
-                float rads = MathHelper.ToRadians(Rotation);
-                if (stat.IsKeyDown(Keys.Up))
-                {
-                    physicsBody.ApplyLinearImpulse(-(float)time.ElapsedGameTime.TotalSeconds*physicsBody.Mass*120*Vector2.TransformNormal(Vector2.UnitY, Matrix.CreateRotationZ(rads)));
+                Left = stat.IsKeyDown(Keys.Left);
+                Right = stat.IsKeyDown(Keys.Right);
+                Up = stat.IsKeyDown(Keys.Up);
+                Down = stat.IsKeyDown(Keys.Down);
 
-                    //physicsBody.LinearVelocity -= ;
-                }
-        
-                Console.WriteLine(physicsBody.LinearVelocity);
-               // Console.WriteLine(physicsBody.Position);
+                //Console.WriteLine(physicsBody.LinearVelocity);
+                 Console.WriteLine(physicsBody.Position);
                 //physicsBody.Rotation = -rads + MathHelper.ToRadians(90);
             }
+            Movement(time);
             //Position += Speed * Velocity * (float)time.ElapsedGameTime.TotalSeconds;
+        }
+
+        private void Movement(GameTime time)
+        {
+            if (Left)
+            {
+                Rotation -= (float)time.ElapsedGameTime.TotalSeconds * 200;
+                physicsBody.ApplyLinearImpulse((float)time.ElapsedGameTime.TotalSeconds * 10 * -physicsBody.LinearVelocity * 2);
+            }
+            if (Right)
+            {
+                Rotation += (float)time.ElapsedGameTime.TotalSeconds * 200;
+                physicsBody.ApplyLinearImpulse((float)time.ElapsedGameTime.TotalSeconds * 10 * -physicsBody.LinearVelocity * 2);
+            }
+            float rads = MathHelper.ToRadians(Rotation);
+            if (Up)
+            {
+                physicsBody.ApplyLinearImpulse(-(float)time.ElapsedGameTime.TotalSeconds * physicsBody.Mass * 120 * Vector2.TransformNormal(Vector2.UnitY, Matrix.CreateRotationZ(rads)));
+
+            }
+            if (Down)
+            {
+                if (physicsBody.LinearVelocity.Length() > 5)
+                {
+                    physicsBody.LinearVelocity *= 0.89f;
+                }
+                else
+                {
+                    physicsBody.ApplyLinearImpulse(-(float)time.ElapsedGameTime.TotalSeconds * physicsBody.Mass * -200 * Vector2.TransformNormal(Vector2.UnitY, Matrix.CreateRotationZ(rads)));
+                }
+            }
         }
 
         public void Draw(GameTime time)
