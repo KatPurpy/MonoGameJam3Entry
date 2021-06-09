@@ -12,10 +12,12 @@ using tainicom.Aether.Physics2D.Dynamics;
 using tainicom.Aether.Physics2D.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 using Dcrew.Camera;
+using ImGuiNET;
+using DSastR.Core;
 
 namespace MonoGameJam3Entry
 {
-    class Game : Microsoft.Xna.Framework.Game
+    public sealed class Game : Microsoft.Xna.Framework.Game
     {
         public const float PixelsPerMeter = 10;
         public static Game _;
@@ -27,106 +29,57 @@ namespace MonoGameJam3Entry
             Content.RootDirectory = "";
         }
         SoundEffect dd;
-        Texture2D bonk;
+       
         StreamedSound ss;
-        Texture2D testpattern;
 
-        World world = new World(Vector2.Zero);
+        MappedSpriteSheet jungle;
 
-        Bathtub bathtub;
-        Bathtub dummy_bathtub;
+        public Texture2D bonk, testpattern, basecart, chr_monkey;
+        public MappedSprite track_palm => jungle["palm"];
 
-        DebugView dv;
-
-        Camera cam;
+        SceneManager SceneManager;       
 
         protected override void Initialize()
         {
             _ = this;
+            SceneManager = new(this);
+            IsMouseVisible = true;
             base.Initialize();
             spriteBatch = new SpriteBatch(gdm.GraphicsDevice);
             ss =  LoadMusic("test.ogg");
-            bonk = LoadTexture("bonk.bmp");
+            jungle = new(this, "[jungle] (imported).map");
             dd = LoadSound("popup.ogg");
-            testpattern = LoadTexture("testpattern.bmp");
+            
             var a = dd.CreateInstance();
             a.IsLooped = true;
 
-            
-            cam = new Camera(new Vector2(0, 0));
-            cam.Init();
-            cam.Scale = Vector2.One * 0.5f;
+
+
             ///      a.Play();
             //     ss.Play();
-            var texture = LoadTexture("basecart.bmp");
-            bathtub = new Bathtub(world);
-            bathtub.Texture = texture;
 
-            dummy_bathtub = new Bathtub(world);
-            dummy_bathtub.Texture = texture;
-            dummy_bathtub.PlayerControlled = false;
-            //bathtub.Position = new Vector2(gdm.PreferredBackBufferWidth/2, gdm.PreferredBackBufferHeight / 2);
-            world.CreateEdge(new(-100, -100), new(100, -100));
-            dv = new DebugView(world);
+            SceneManager.SwitchScene(new GameScene());
             
-            dv.Enabled = true;
-            dv.AppendFlags(DebugViewFlags.Shape);
-            dv.LoadContent(gdm.GraphicsDevice, Content);
         }
 
         
 
         protected override void Update(GameTime gameTime)
         {
-            ss.Update();
-            
-            bathtub.Update(gameTime);
-            world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
-            cam.XY = Vector2.Lerp(cam.XY,bathtub.VisualPosition - bathtub.Velocity * PixelsPerMeter,0.2f);
-            
-
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                ss.Pause();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                ss.Play();
-            }
-
+            SceneManager.Update(gameTime);
             base.Update(gameTime);
         }
 
-        
-
-
-
+ 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin(transformMatrix: cam.View(), samplerState: SamplerState.PointClamp);
-
-            for (int i = 0; i < 80; i++)
-            {
-                spriteBatch.Draw(testpattern, new Vector2(i%10,i/10) * 512, Color.Yellow);
-            }
-            spriteBatch.Draw(bonk,Vector2.Zero,Color.Red);
-            bathtub.Draw(gameTime);
-            dummy_bathtub.Draw(gameTime);
-            spriteBatch.End();
-
+            SceneManager.Draw(gameTime);
             //cam.Scale = Vector2.One * PhysicsScale; 
-            var a =  cam.Projection;
-            var b =  cam.View() ;
-            var c = Matrix.CreateScale(PixelsPerMeter);
-            //dv.AdaptiveLimits = true;
-            dv.RenderDebugData(ref a,ref b,ref c);
-  
+
+
             base.Draw(gameTime);
         }
-
-        Vector2 ViewCenter;
 
         protected override void OnExiting(object sender, EventArgs args)
         {
@@ -134,10 +87,10 @@ namespace MonoGameJam3Entry
         }
 
 
-        Texture2D LoadTexture(string s)
+        public static Texture2D LoadTexture(string s)
         {
             using var stream = File.OpenRead(s);
-            Texture2D t2d = Texture2D.FromStream(gdm.GraphicsDevice, stream);
+            Texture2D t2d = Texture2D.FromStream(Game._.gdm.GraphicsDevice, stream);
             byte[] data = new byte[t2d.Width * t2d.Height * 4];
             t2d.GetData(data);
             Span<Color> c = MemoryMarshal.Cast<byte, Color>(data.AsSpan());
@@ -146,7 +99,7 @@ namespace MonoGameJam3Entry
             return t2d;
         }
 
-        SoundEffect LoadSound(string s)
+        public static SoundEffect LoadSound(string s)
         {
             using (var reader = new VorbisReader(s))
             {
@@ -176,6 +129,6 @@ namespace MonoGameJam3Entry
             }
         }
 
-        StreamedSound LoadMusic(string s) => new(s);
+        public static StreamedSound LoadMusic(string s) => new(s);
     }
 }

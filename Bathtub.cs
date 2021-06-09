@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using tainicom.Aether.Physics2D.Dynamics;
 using tainicom.Aether.Physics2D.Diagnostics;
+using DSastR.Core;
+using ImGuiNET;
+using System.Text.Json;
 
 namespace MonoGameJam3Entry
 {
@@ -22,17 +25,22 @@ namespace MonoGameJam3Entry
         Left = 6,
         UpLeft = 7,
     }
-    class Bathtub
+    class Bathtub : Entity
     {
-        public Texture2D Texture;
-        public Vector2 RealPposition { get => physicsBody.Position;
+        public Texture2D CarTexture;
+        public Texture2D CharacterTexture;
+
+        public Vector2 RealPosition { get => physicsBody.Position;
         set
             {
                 physicsBody.Position = value;
             }
         }
 
-        public Vector2 VisualPosition => RealPposition * Game.PixelsPerMeter;
+        public override Vector2 VisualPosition {
+            set => RealPosition = value / Game.PixelsPerMeter;
+            get => RealPosition * Game.PixelsPerMeter;
+        }
 
 
         public Vector2 Velocity;
@@ -41,20 +49,20 @@ namespace MonoGameJam3Entry
 
         public bool PlayerControlled = true;
 
-        Body physicsBody;
+        World world;
+        public Body physicsBody;
 
         public Bathtub(World world)
         {
-
+            this.world = world;
             physicsBody = world.CreateEllipse(64/Game.PixelsPerMeter, 42/Game.PixelsPerMeter,8,1,bodyType: BodyType.Dynamic);
-            
             physicsBody.LinearDamping = 1f;
             physicsBody.SetRestitution(0.7f);
             physicsBody.SetFriction(1.5f);
             physicsBody.FixedRotation = true;
         }
         bool Left, Right, Up, Down;
-        public void Update(GameTime time)
+        public override void Update(GameTime time)
         {
             Left = Right = Up = Down = false;
 
@@ -69,12 +77,14 @@ namespace MonoGameJam3Entry
                 Down = stat.IsKeyDown(Keys.Down);
 
                 //Console.WriteLine(physicsBody.LinearVelocity);
-                 Console.WriteLine(physicsBody.Position);
+                 //Console.WriteLine(physicsBody.Position);
                 //physicsBody.Rotation = -rads + MathHelper.ToRadians(90);
             }
             Movement(time);
             //Position += Speed * Velocity * (float)time.ElapsedGameTime.TotalSeconds;
         }
+
+
 
         private void Movement(GameTime time)
         {
@@ -107,12 +117,25 @@ namespace MonoGameJam3Entry
             }
         }
 
-        public void Draw(GameTime time)
+        public override void Draw(GameTime time)
         {
             
             DrawBathtub(VisualPosition, (Direction)((int)Rotation / 45 % 8), Color.White);
         }
 
+
+        public override void IMGUI(GameTime time)
+        {
+            RealPosition = ImGuiUtils.VecField("POSITION",RealPosition);
+            bool val = physicsBody.FixtureList[0].IsSensor;
+            if(ImGui.Checkbox("Disable collisions", ref val)) physicsBody.FixtureList[0].IsSensor = val;
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+            world.Remove(physicsBody);
+        }
 
         void DrawBathtub(Vector2 pos, Direction dir, Color color)
         {
@@ -126,9 +149,23 @@ namespace MonoGameJam3Entry
                 se = SpriteEffects.FlipHorizontally;
                 dir = (8 - dir);
             }
-            Game._.spriteBatch.Draw(Texture,
+            Game._.spriteBatch.Draw(CarTexture,
                pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, 0
                );
+            Game._.spriteBatch.Draw(CharacterTexture,
+               pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, 0
+                );
+        }
+
+        public override void SerializeState(Utf8JsonWriter writer)
+        {
+            WritePosition(writer);
+        }
+
+        public override void RestoreState(ref JsonDocument json)
+        {
+            throw new NotImplementedException();
+            //VisualPosition = new((float)reader.GetDecimal(),(float)reader.GetDecimal());
         }
     }
 }

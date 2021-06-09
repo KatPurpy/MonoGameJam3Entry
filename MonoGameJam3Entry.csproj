@@ -13,17 +13,24 @@
     <PackageReference Include="Aether.Physics2D.Diagnostics.MG" Version="1.5.0" />
     <PackageReference Include="Aether.Physics2D.MG" Version="1.5.0" />
     <PackageReference Include="Dcrew.Camera" Version="1.5.3" />
+    <PackageReference Include="ImGui.NET" Version="1.78.0" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.0.1641" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="basecart.bmp">
+    <None Update="IMAGES\basecart.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="bonk.bmp">
+    <None Update="IMAGES\bonk.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DiagnosticsFont.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="IMAGES\chr_monkey.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="IMAGES\jungle.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="popup.ogg">
@@ -32,7 +39,10 @@
     <None Update="test.ogg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testpattern.bmp">
+    <None Update="IMAGES\testpattern.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="[jungle] %28imported%29.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

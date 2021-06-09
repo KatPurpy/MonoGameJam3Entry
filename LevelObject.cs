@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace MonoGameJam3Entry
 {
-    public static class AudioManager
+    public enum LevelObject: sbyte
     {
-        public static void LoadSound()
-        {
-
-        }
+        DriverSpawnPoint,
+        Waypoint,
+        Finish,
+        JungleWall
     }
 }

@@ -13,7 +13,7 @@ using tainicom.Aether.Physics2D;
 
 namespace MonoGameJam3Entry
 {
-    class StreamedSound : IDisposable
+    public class StreamedSound : IDisposable
     {
         VorbisReader reader;
         DynamicSoundEffectInstance sound;
