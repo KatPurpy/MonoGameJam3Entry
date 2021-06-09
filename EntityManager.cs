@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Dcrew.Camera;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,9 +54,10 @@ namespace DSastR.Core
             }
         }
 
-        public void Draw(GameTime time)
+        public void Draw(GameTime time,Camera camera)
         {
             for(int i = Entities.Count - 1; i >= 0; i--){
+                Entities[i].camera = camera;
                 Entities[i].Draw(time);
             }
         }

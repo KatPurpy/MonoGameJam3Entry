@@ -109,20 +109,23 @@ namespace MonoGameJam3Entry
                 }
                 ImGui.EndMenu();
             }
-
-            if (ImGui.BeginMenu("Set Entity Brush"))
+            bool enableEntityBrush = currentEntity == null || currentEntity.GetType() != typeof(Track_PalmWall);
+            if (enableEntityBrush)
             {
-                foreach (Type t in instancables.Keys)
+                if (ImGui.BeginMenu("Entity Brush: " + (entityBrush == null ? "NONE" : entityBrush.Name)))
                 {
-                    if (ImGui.MenuItem(t.Name))
+                    foreach (Type t in instancables.Keys)
                     {
-                        entityBrush = t;
+                        if (ImGui.MenuItem(t.Name))
+                        {
+                            entityBrush = t;
+                        }
                     }
+                    ImGui.EndMenu();
                 }
-                ImGui.EndMenu();
             }
 
-            ImGui.LabelText("Selected Entity","Selected entity type: " + entityBrush);
+            
 
             //var a = manager.Entities.Where(e => e.ShowInInspector).Select(a => manager.Entities.IndexOf(a).ToString() + " (" + a.GetType().Name + ")").ToArray();
 
@@ -177,7 +180,7 @@ namespace MonoGameJam3Entry
                 ImGui.GetBackgroundDrawList().AddCircleFilled(pos, MathF.Abs(MathF.Sin(2 * (float)time.TotalGameTime.TotalSeconds)) * 20 + 5, (uint)(MathHelper.Lerp(0x55FFFF00, 0x55FF00FF, MathF.Abs(MathF.Sin(4 * (float)time.TotalGameTime.TotalSeconds)))));
             }
             var m = ImGui.GetMousePos();
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            if (enableEntityBrush && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
             {
                 currentEntityID = AddEntity(manager, instancables, entityBrush, out Entity ent);
                 if (currentEntityID != -1)
@@ -210,9 +213,9 @@ namespace MonoGameJam3Entry
 
                 Debug.WriteLine(UTF8Encoding.UTF8.GetString(stream.ToArray()));
 
-                var asww = JsonDocument.Parse(UTF8Encoding.UTF8.GetString(stream.ToArray()));
+                var asww = JsonDocument.Parse(UTF8Encoding.UTF8.GetString(stream.ToArray())).RootElement;
 
-                track.InspectableEntities[0].RestoreState(ref asww);
+                track.InspectableEntities[0].RestoreState(asww);
             }
 
             

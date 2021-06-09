@@ -96,34 +96,34 @@ namespace MonoGameJam3Entry
             writer.WriteEndArray();
         }
 
-        public override void RestoreState(ref JsonDocument json)
+        public override void RestoreState(JsonElement state)
         {
             Positions.Clear();
 
-            foreach(var val in json.RootElement.GetProperty("Positions").EnumerateArray())
+            foreach (var val in state.GetProperty(nameof(Positions)).EnumerateArray())
             {
-                Positions.Add(new((float)val.GetProperty("X").GetDecimal(),(float)val.GetProperty("Y").GetDecimal()));
+                Positions.Add(ReadVector2(val));
             }
-
-            /*reader.Read();
-            reader.Read();
-            reader.Read(); //start array
-            Debug.Assert(reader.TokenType == JsonTokenType.StartArray);
-            do
-            {
-                reader.Read(); //start object or check if the array has ended
-                if ((reader.TokenType == JsonTokenType.EndArray)) break;
-                Vector2 vec;
-                reader.Read(); //X property
-                reader.Read(); //X value
-                vec.X = (float)reader.GetDecimal();
-                reader.Read(); //Y property
-                reader.Read(); //Y value
-                vec.Y = (float)reader.GetDecimal();
-                reader.Read(); //end object
-                Positions.Add(vec);
-            } while (true);*/
         }
+        /*reader.Read();
+        reader.Read();
+        reader.Read(); //start array
+        Debug.Assert(reader.TokenType == JsonTokenType.StartArray);
+        do
+        {
+            reader.Read(); //start object or check if the array has ended
+            if ((reader.TokenType == JsonTokenType.EndArray)) break;
+            Vector2 vec;
+            reader.Read(); //X property
+            reader.Read(); //X value
+            vec.X = (float)reader.GetDecimal();
+            reader.Read(); //Y property
+            reader.Read(); //Y value
+            vec.Y = (float)reader.GetDecimal();
+            reader.Read(); //end object
+            Positions.Add(vec);
+        } while (true);
+    }*/
     }
 }
 

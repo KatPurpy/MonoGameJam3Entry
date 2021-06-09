@@ -17,6 +17,7 @@ namespace MonoGameJam3Entry
 
         public void Draw(Vector2 position, Color? color = null, float rotation = 0, Vector2? origin =null, Vector2? scale = null, SpriteEffects effects = SpriteEffects.None, float layerDepth = 0f)
         {
+
             Game._.spriteBatch.Draw(
                 texture,
                 position: position,

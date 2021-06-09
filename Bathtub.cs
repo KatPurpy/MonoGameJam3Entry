@@ -150,22 +150,21 @@ namespace MonoGameJam3Entry
                 dir = (8 - dir);
             }
             Game._.spriteBatch.Draw(CarTexture,
-               pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, 0
+               pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, GetLayerDepth()
                );
             Game._.spriteBatch.Draw(CharacterTexture,
-               pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, 0
+               pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, GetLayerDepth()+0.001f
                 );
         }
 
         public override void SerializeState(Utf8JsonWriter writer)
         {
-            WritePosition(writer);
+            WriteVisualPosition(writer);
         }
 
-        public override void RestoreState(ref JsonDocument json)
+        public override void RestoreState(JsonElement state)
         {
-            throw new NotImplementedException();
-            //VisualPosition = new((float)reader.GetDecimal(),(float)reader.GetDecimal());
+            ReadVisualPosition(state);
         }
     }
 }

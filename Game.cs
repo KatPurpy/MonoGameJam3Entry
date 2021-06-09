@@ -26,6 +26,8 @@ namespace MonoGameJam3Entry
         public Game()
         {
             gdm = new GraphicsDeviceManager(this);
+
+            
             Content.RootDirectory = "";
         }
         SoundEffect dd;
@@ -54,15 +56,21 @@ namespace MonoGameJam3Entry
             a.IsLooped = true;
 
 
-
+           
             ///      a.Play();
             //     ss.Play();
 
             SceneManager.SwitchScene(new GameScene());
             
         }
+        protected override void LoadContent()
+        {
+            gdm.PreferredBackBufferWidth = 1280;
+            gdm.PreferredBackBufferHeight = 720;
+            gdm.ApplyChanges();
+        }
 
-        
+
 
         protected override void Update(GameTime gameTime)
         {

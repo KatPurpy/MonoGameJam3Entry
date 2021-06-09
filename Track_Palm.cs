@@ -44,15 +44,15 @@ namespace MonoGameJam3Entry
 
         public override void Draw(GameTime time)
         {
-            texture.Draw(VisualPosition, origin: sprite_offset, scale:Vector2.One*2) ;
+            texture.Draw(VisualPosition, origin: sprite_offset, scale:Vector2.One*2,layerDepth:GetLayerDepth()) ;
         }
 
         public override void SerializeState(Utf8JsonWriter writer)
         {
-            WritePosition(writer);
+            WriteVisualPosition(writer);
         }
 
-        public override void RestoreState(ref JsonDocument reader)
+        public override void RestoreState(JsonElement json)
         {
             throw new NotImplementedException();
         }

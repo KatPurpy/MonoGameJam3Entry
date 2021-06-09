@@ -32,6 +32,8 @@ namespace MonoGameJam3Entry
             camera = new Camera(new Vector2(0, 0));
             camera.Init();
             camera.Scale = Vector2.One * 0.5f;
+            camera.VirtualRes = (800, 480);
+            
 
             Game._.chr_monkey = Game.LoadTexture("IMAGES/chr_monkey.bmp");
             Game._.basecart = Game.LoadTexture("IMAGES/basecart.bmp");
@@ -147,16 +149,20 @@ namespace MonoGameJam3Entry
         bool drawColliders;
         public override void Draw(GameTime time)
         {
-            Game._.spriteBatch.Begin(transformMatrix: camera.View(), samplerState: SamplerState.PointClamp);
+            Game._.spriteBatch.Begin(SpriteSortMode.FrontToBack, transformMatrix: camera.View(), samplerState: SamplerState.PointClamp);
 
             for (int i = 0; i < 80; i++)
             {
-                Game._.spriteBatch.Draw(Game._.testpattern, new Vector2(i % 10, i / 10) * 512, Color.Yellow);
+                Game._.spriteBatch.Draw(Game._.testpattern, new Vector2(i % 10, i / 10) * 512,
+                    null, 
+                    Color.Yellow,
+                    0,
+                    Vector2.Zero,1, SpriteEffects.None,0);
             }
             Game._.spriteBatch.Draw(Game._.bonk, Vector2.Zero, Color.Red);
 
-            em.Draw(time);
-            track.Draw(time);
+            em.Draw(time,camera);
+            track.Draw(time,camera);
             Game._.spriteBatch.End();
             if (drawColliders)
             {
