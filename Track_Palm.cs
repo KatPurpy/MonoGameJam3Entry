@@ -20,11 +20,11 @@ namespace MonoGameJam3Entry
 
         World world;
         Body body;
-        Vector2 sprite_offset = new(40,75);
+        Vector2 sprite_offset = new(41,75);
         public Track_Palm(World world)
         {
             this.world = world;
-            body = world.CreateEllipse(32*1.5f/Game.PixelsPerMeter,16*1.5f/Game.PixelsPerMeter,8,1);
+            body = world.CreateEllipse(32*1f/Game.PixelsPerMeter,16*1f/Game.PixelsPerMeter,8,1);
         }
 
         public override void IMGUI(GameTime time)

@@ -42,7 +42,10 @@ namespace MonoGameJam3Entry
             get => RealPosition * Game.PixelsPerMeter;
         }
 
-
+        public Track_Waypoints AI_Waypoints;
+        int AI_WaypointID;
+        Vector2 AI_TargetPosition;
+        
         public Vector2 Velocity;
         public float Rotation;
         public float Speed = 10;
@@ -60,8 +63,10 @@ namespace MonoGameJam3Entry
             physicsBody.SetRestitution(0.7f);
             physicsBody.SetFriction(1.5f);
             physicsBody.FixedRotation = true;
+            PlayerControlled = true;
         }
         bool Left, Right, Up, Down;
+        Random r = new();
         public override void Update(GameTime time)
         {
             Left = Right = Up = Down = false;
@@ -77,8 +82,34 @@ namespace MonoGameJam3Entry
                 Down = stat.IsKeyDown(Keys.Down);
 
                 //Console.WriteLine(physicsBody.LinearVelocity);
-                 //Console.WriteLine(physicsBody.Position);
+                //Console.WriteLine(physicsBody.Position);
                 //physicsBody.Rotation = -rads + MathHelper.ToRadians(90);
+            }
+            else
+            {
+                Up = true;
+                
+                float angle = MathHelper.ToRadians(Rotation);
+                Vector2 dir = new Vector2(MathF.Cos(angle),MathF.Sin(angle));
+                Vector2 dirToTarget = AI_TargetPosition * Game.PixelsPerMeter - VisualPosition;
+                Console.WriteLine(dirToTarget.Length());
+                
+                if(dirToTarget.Length() < Track_Waypoints.aiTriggerRadius * Game.PixelsPerMeter)
+                {
+                    AI_WaypointID++;
+                    AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID % (AI_Waypoints.Positions.Count)];
+                    AI_TargetPosition += Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble()-0.5f,(float)r.NextDouble()-0.5f))*2;
+                }
+
+                dirToTarget.Normalize();
+                if (Vector2.Dot(dir, dirToTarget) > 0)
+                {
+                    Right = true;
+                }
+                else
+                {
+                    Left = true;
+                }
             }
             Movement(time);
             //Position += Speed * Velocity * (float)time.ElapsedGameTime.TotalSeconds;
@@ -126,7 +157,18 @@ namespace MonoGameJam3Entry
 
         public override void IMGUI(GameTime time)
         {
+            AI_Waypoints.DrawWayPoints();
+
             RealPosition = ImGuiUtils.VecField("POSITION",RealPosition);
+            ImGui.Checkbox("PLAYER",ref PlayerControlled);
+            AI_TargetPosition = ImGuiUtils.VecField("TARGET", AI_TargetPosition);
+
+            ImGui.GetBackgroundDrawList().AddCircleFilled(
+                NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(AI_TargetPosition * Game.PixelsPerMeter, camera.View())),
+                10,
+                0xFFFFFFFF
+                );
+
             bool val = physicsBody.FixtureList[0].IsSensor;
             if(ImGui.Checkbox("Disable collisions", ref val)) physicsBody.FixtureList[0].IsSensor = val;
         }

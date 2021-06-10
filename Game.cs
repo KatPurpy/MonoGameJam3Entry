@@ -34,10 +34,7 @@ namespace MonoGameJam3Entry
        
         StreamedSound ss;
 
-        MappedSpriteSheet jungle;
 
-        public Texture2D bonk, testpattern, basecart, chr_monkey;
-        public MappedSprite track_palm => jungle["palm"];
 
         SceneManager SceneManager;       
 
@@ -48,12 +45,11 @@ namespace MonoGameJam3Entry
             IsMouseVisible = true;
             base.Initialize();
             spriteBatch = new SpriteBatch(gdm.GraphicsDevice);
-            ss =  LoadMusic("test.ogg");
-            jungle = new(this, "[jungle] (imported).map");
-            dd = LoadSound("popup.ogg");
-            
-            var a = dd.CreateInstance();
-            a.IsLooped = true;
+
+            Assets.Load(this);
+
+            //var a = dd.CreateInstance();
+            //a.IsLooped = true;
 
 
            
@@ -91,7 +87,7 @@ namespace MonoGameJam3Entry
 
         protected override void OnExiting(object sender, EventArgs args)
         {
-            ss.Dispose();
+            ss?.Dispose();
         }
 
 

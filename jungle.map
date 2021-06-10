@@ -5,7 +5,7 @@
 <!-- #$-:GIMP Image Map plug-in by Maurits Rijk -->
 <!-- #$-:Please do not edit lines starting with "#$" -->
 <!-- #$VERSION:2.3 -->
-<!-- #$AUTHOR:Kat Purpy   -->
+<!-- #$AUTHOR:Kat Purpy    -->
 <area shape="rect" coords="23,20,113,103" href="palm" />
 <area shape="rect" coords="4,164,120,249" href="anthill" />
 <area shape="rect" coords="25,265,60,304" href="rock1" />

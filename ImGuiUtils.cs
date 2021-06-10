@@ -24,9 +24,10 @@ namespace MonoGameJam3Entry
             if (sizeof(T) == Unsafe.SizeOf<Vector4>()) ImGui.DragFloat4(label, ref Unsafe.As<T, System.Numerics.Vector4>(ref vec));
             return vec;
         }
-
+        static int frame;
         public static void PolylineEditor(List<Vector2> Positions, Camera camera, ref int dragging, ref int selected, Action Rebuild, Vector2 newPos)
         {
+            frame++;
             if (dragging != -1 && ImGui.IsMouseDown(ImGuiMouseButton.Left))
             {
                 selected = dragging;
@@ -43,6 +44,15 @@ namespace MonoGameJam3Entry
                 {
                     dragging = -1;
                     Rebuild();
+                }
+                if(Positions.Count > 1)
+                for(int i = 0; i < Positions.Count-1; i++)
+                {
+                    var screenPos1 = Vector2.Transform(Positions[i] * Game.PixelsPerMeter, camera.View());
+                    var screenPos2 = Vector2.Transform(Positions[i+1] * Game.PixelsPerMeter, camera.View());
+                    ImGui.GetBackgroundDrawList().AddLine(NumericToXNA.ConvertXNAToNumeric(screenPos1), NumericToXNA.ConvertXNAToNumeric(screenPos2),
+                        frame % 3 == 0 ? 0xFFFF0000 : 0xFF0000FF
+                        );
                 }
 
                 for (int i = Positions.Count; i-- > 0;)
@@ -88,6 +98,5 @@ namespace MonoGameJam3Entry
                 Rebuild();
             }
         }
-
     }
 }

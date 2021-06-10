@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +10,7 @@ using System.Xml;
 
 namespace MonoGameJam3Entry
 {
-    class MappedSpriteSheet
+    public class MappedSpriteSheet
     {
         public Texture2D Texture;
         public Dictionary<string, MappedSprite> Sprites = new();
@@ -39,7 +40,9 @@ namespace MonoGameJam3Entry
                 var rect = node.Attributes["coords"].Value.Split(",").Select(s => int.Parse(s)).ToArray();
                 MappedSprite spr = new MappedSprite();
                 spr.texture = Texture;
-                spr.rectangle = new(rect[0], rect[1], rect[2], rect[3]);
+
+                var rectangle = System.Drawing.Rectangle.FromLTRB(rect[0], rect[1], rect[2], rect[3]);
+                spr.rectangle = new Rectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
 
                 Sprites.Add(name, spr);
             }

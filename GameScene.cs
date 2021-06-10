@@ -3,8 +3,10 @@ using DSastR.Core;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,15 +17,21 @@ namespace MonoGameJam3Entry
 {
     public sealed partial class GameScene : Scene
     {
-        World world = new World(Vector2.Zero);
-        DebugView physicsDebugDraw;
-        ImGuiRenderer ImGuiRenderer;
-        public static Camera camera;
+        World physicsWorld = new World(Vector2.Zero);
 
+        ImGuiRenderer ImGuiRenderer;
+
+        public static Camera camera;
+        Entity focusedEntity;
 
         Bathtub bathtub;
 
-        
+        public void Win()
+        {
+
+        }
+
+        static Track_Waypoints wayPoints;
 
         public override void Enter()
         {
@@ -33,47 +41,38 @@ namespace MonoGameJam3Entry
             camera.Init();
             camera.Scale = Vector2.One * 0.5f;
             camera.VirtualRes = (800, 480);
-            
 
-            Game._.chr_monkey = Game.LoadTexture("IMAGES/chr_monkey.bmp");
-            Game._.basecart = Game.LoadTexture("IMAGES/basecart.bmp");
-            bathtub = new Bathtub(world);
-            bathtub.CarTexture = Game._.basecart;
-            bathtub.CharacterTexture = Game._.chr_monkey;
+
+            //            bathtub = new Bathtub(physicsWorld);
+            //       bathtub.CarTexture = Assets.Sprites.basecart;
+            //           bathtub.CharacterTexture = Assets.Sprites.chr_monkey;
+            //         bathtub.AI_Waypoints = wayPoints;
+            //em.AddEntity(bathtub);
+  
+
+            track.AddEntity(wayPoints = new Track_Waypoints());
+            
 
             var testtt = new Track_PalmWall()
             {
                 camera = GameScene.camera,
-                world = world,
+                world = physicsWorld,
                 EntityManager = track
             };
             testtt.Positions.Add(new Vector2(0));
-            testtt.Positions.Add(new Vector2(30,20));
+            testtt.Positions.Add(new Vector2(30, 20));
             testtt.Positions.Add(new Vector2(50, 10));
-
+            
             track.AddEntity(testtt);
 
-
-            Game._.bonk = Game.LoadTexture("IMAGES/bonk.bmp");
-            Game._.testpattern = Game.LoadTexture("IMAGES/testpattern.bmp");
-
-            em.AddEntity(bathtub);
-
-
             //bathtub.Position = new Vector2(gdm.PreferredBackBufferWidth/2, gdm.PreferredBackBufferHeight / 2);
-            world.CreateEdge(new(-100, -100), new(100, -100));
-            physicsDebugDraw = new DebugView(world);
+            physicsWorld.CreateEdge(new(-100, -100), new(100, -100));
 
-            physicsDebugDraw.Enabled = true;
-            physicsDebugDraw.AppendFlags(DebugViewFlags.Shape);
-            physicsDebugDraw.LoadContent(Game._.gdm.GraphicsDevice, Game._.Content);
-
-            ImGuiRenderer = new ImGuiRenderer(Game._);
-            ImGuiRenderer.RebuildFontAtlas();
+            InitEditor();
         }
 
 
-        Entity focusedEntity;
+        
 
 
         enum EditMode
@@ -92,7 +91,7 @@ namespace MonoGameJam3Entry
         EntityManager track;
         int track_ThingID;
 
-        Dictionary<Type, Func<Game, World, EntityManager, Entity>> instancableEntities = new (){
+        Dictionary<Type, Func<Game, World, EntityManager, Entity>> spawn_entity = new (){
             {
                 typeof(Bathtub),
                 (game,world,_) =>
@@ -101,16 +100,19 @@ namespace MonoGameJam3Entry
                     return new Bathtub(world)
                     {
                         
-                        CarTexture = game.basecart,
-                        PlayerControlled = false,
-                        CharacterTexture = game.chr_monkey
+                        CarTexture = Assets.Sprites.basecart,
+                        PlayerControlled = true,
+                        CharacterTexture = Assets.Sprites.chr_monkey,
+                        AI_Waypoints = GameScene.wayPoints,
+                        camera = camera
                     };
                 }
             },
             
+            
         };
 
-        Dictionary<Type, Func<Game, World, EntityManager, Entity>> backgroudnEntities = new()
+        Dictionary<Type, Func<Game, World, EntityManager, Entity>> spawn_track_entity = new()
         {
             {
                 typeof(Track_Palm),
@@ -118,7 +120,7 @@ namespace MonoGameJam3Entry
                 {
                     return new Track_Palm(world)
                     {
-                        texture = game.track_palm
+                        texture = Assets.Sprites.palm
                     };
                 }
             },
@@ -128,52 +130,64 @@ namespace MonoGameJam3Entry
                 {
                     return new Track_PalmWall()
                     {
-                        camera = GameScene.camera,
+                        camera = camera,
                         world = world,
                         EntityManager = entMan
                     };
                 }
-            }
+            },
         };
 
         public override void Update(GameTime gameTime)
         {
-            em.Update(gameTime);
+            //em.Update(gameTime);
             track.Update(gameTime);
-            world.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
+            physicsWorld.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
            
             if(focusedEntity != null) camera.XY = Vector2.Lerp(camera.XY, focusedEntity.VisualPosition, 0.2f);
      
                 //camera.XY = Vector2.Lerp(camera.XY, bathtub.VisualPosition - bathtub.Velocity * Game.PixelsPerMeter, 0.2f);
         }
-        bool drawColliders;
+       
         public override void Draw(GameTime time)
         {
+            DrawBackground(0);
+            DrawBackground(0.5f);
+
             Game._.spriteBatch.Begin(SpriteSortMode.FrontToBack, transformMatrix: camera.View(), samplerState: SamplerState.PointClamp);
-
-            for (int i = 0; i < 80; i++)
-            {
-                Game._.spriteBatch.Draw(Game._.testpattern, new Vector2(i % 10, i / 10) * 512,
-                    null, 
-                    Color.Yellow,
-                    0,
-                    Vector2.Zero,1, SpriteEffects.None,0);
-            }
-            Game._.spriteBatch.Draw(Game._.bonk, Vector2.Zero, Color.Red);
-
-            em.Draw(time,camera);
-            track.Draw(time,camera);
+            em.Draw(time, camera);
+            track.Draw(time, camera);
             Game._.spriteBatch.End();
-            if (drawColliders)
-            {
-                Matrix proj = camera.Projection, view = camera.View(), world = Matrix.CreateScale(Game.PixelsPerMeter);
-                physicsDebugDraw.RenderDebugData(ref proj, ref view, ref world);
-            }
+
 
             EditorFunctions(time);
         }
 
+        private static void DrawBackground(float half)
+        {
+            Game._.spriteBatch.Begin(transformMatrix: camera.View(), samplerState: SamplerState.PointClamp);
+            const int spriteSpacing = 5;
+            const int offset = 3;
+            int sprWidth = Assets.Sprites.ground.rectangle.Width;
+            int sprHeight = Assets.Sprites.ground.rectangle.Height;
 
+            int width = camera.VirtualRes.Width / (int)(sprWidth * camera.Scale.X * spriteSpacing);
+            int height = camera.VirtualRes.Height / (int)(sprHeight * camera.Scale.Y * spriteSpacing);
+            Console.WriteLine(width + " " + height);
+            Point cam = new Point((int)camera.X / sprWidth / spriteSpacing, (int)camera.Y / sprHeight / spriteSpacing);
+            for (int x = cam.X - width / 2 - offset; x < width / 2 + cam.X + offset; x++)
+            {
+                for (int y = cam.Y - height / 2 - offset; y < height / 2 + cam.Y + offset; y++)
+                {
+                    Assets.Sprites.ground.Draw(new Vector2(x + half, y + half) *
+                        new Vector2(sprWidth, sprHeight) * spriteSpacing,
+                        scale: Vector2.One * spriteSpacing,
+                        color: Color.Gray
+                        );
+                }
+            }
+            Game._.spriteBatch.End();
+        }
 
         public override void Leave()
         {

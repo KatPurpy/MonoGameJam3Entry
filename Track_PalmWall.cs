@@ -18,8 +18,6 @@ namespace MonoGameJam3Entry
 {
     public class Track_PalmWall : Entity
     {
-
-        public Camera camera;
         public override Vector2 VisualPosition { get => 
                 Positions.Count == 0 ? new (Mouse.GetState().X-120,Mouse.GetState().Y) : 
                 
@@ -44,7 +42,6 @@ namespace MonoGameJam3Entry
         float palmDistance = 10 * Game.PixelsPerMeter;
         void Rebuild()
         {
-            Debug.Assert(dragging == -1);
             if (Positions.Count <= 1) return; 
             foreach (var p in palms) p.Destroy();
             palms.Clear();
@@ -60,7 +57,7 @@ namespace MonoGameJam3Entry
                 {
                     var palm = new Track_Palm(world)
                     {
-                        texture = Game._.track_palm,
+                        texture = Assets.Sprites.palm,
                         ShowInInspector = false
                     }; ;
 
@@ -104,6 +101,7 @@ namespace MonoGameJam3Entry
             {
                 Positions.Add(ReadVector2(val));
             }
+            Rebuild();
         }
         /*reader.Read();
         reader.Read();

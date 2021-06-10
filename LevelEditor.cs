@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using tainicom.Aether.Physics2D.Diagnostics;
 using tainicom.Aether.Physics2D.Dynamics;
 
 namespace MonoGameJam3Entry
@@ -21,8 +22,30 @@ namespace MonoGameJam3Entry
         Type entityBrush;
         string fileName = "FILENAME";
         bool saveMenuActive;
+
+        DebugView physicsDebugDraw;
+        bool drawColliders;
+
+        void InitEditor()
+        {
+            physicsDebugDraw = new DebugView(physicsWorld);
+
+            physicsDebugDraw.Enabled = true;
+            physicsDebugDraw.AppendFlags(DebugViewFlags.Shape);
+            physicsDebugDraw.LoadContent(Game._.gdm.GraphicsDevice, Game._.Content);
+
+            ImGuiRenderer = new ImGuiRenderer(Game._);
+            ImGuiRenderer.RebuildFontAtlas();
+        }
+
         private void EditorFunctions(GameTime time)
         {
+            if (drawColliders)
+            {
+                Matrix proj = camera.Projection, view = camera.View(), world = Matrix.CreateScale(Game.PixelsPerMeter);
+                physicsDebugDraw.RenderDebugData(ref proj, ref view, ref world);
+            }
+
             ImGuiRenderer.BeforeLayout(time);
 
             if (ImGui.BeginMainMenuBar())
@@ -74,10 +97,10 @@ namespace MonoGameJam3Entry
             {
 
                 case EditMode.Entity:
-                    EntityEditor(time, "Entities", em, ref currentEntityID, ref focusedEntity, instancableEntities);
+                    EntityEditor(time, "Entities", em, ref currentEntityID, ref focusedEntity, spawn_entity);
                     break;
                 case EditMode.Track:
-                    EntityEditor(time, "Entities", track, ref track_ThingID, ref focusedEntity, backgroudnEntities);
+                    EntityEditor(time, "Entities", track, ref track_ThingID, ref focusedEntity, spawn_track_entity);
                     break;
             }
             ImGui.End();
@@ -150,7 +173,7 @@ namespace MonoGameJam3Entry
             ImGui.ListBox("", ref currentEntityID, s.Select(s => s.ToString()).ToArray(), s.Count, 10);
 
 
-            if (ImGui.Button("Delete Entity"))
+            if (focusedEntity?.GetType() != typeof(Track_Waypoints) && ImGui.Button("Delete Entity"))
             {
                 ImGui.OpenPopup("CONFIRM DELETION?");
             }
@@ -195,39 +218,82 @@ namespace MonoGameJam3Entry
             ent = null;
             if (entityType == null) return -1;
             int currentEntityID;
-            manager.AddEntity(ent = instancables[entityType](Game._, this.world, manager));
+            manager.AddEntity(ent = instancables[entityType](Game._, this.physicsWorld, manager));
             currentEntityID = manager.Entities.Count - 1;
             return currentEntityID;
         }
 
+        void SaveEntity(Utf8JsonWriter writer,Entity ent)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("type", ent.GetType().Name);
+            ent.SerializeState(writer);
+            writer.WriteEndObject();
+        }
+
         private void Save(string fileName)
         {
-            using (var stream = new MemoryStream()) {
-                Utf8JsonWriter writer = new Utf8JsonWriter(stream);
+            using (var stream = File.Create(fileName)) {
+                Utf8JsonWriter writer = new Utf8JsonWriter(stream,new JsonWriterOptions()
+                {
+                    Indented = true
+                });
                 writer.WriteStartObject();
 
-                track.InspectableEntities[0].SerializeState(writer);
+                writer.WritePropertyName("waypoints");
+                writer.WriteStartObject();
+                wayPoints.SerializeState(writer);
+                writer.WriteEndObject();
+
+                writer.WriteStartArray("entities");
+                foreach (var entity in em.SerializableEntities) SaveEntity(writer, entity);
+                writer.WriteEndArray();
+
+                writer.WriteStartArray("track");
+                foreach (var entity in track.SerializableEntities) SaveEntity(writer, entity);
+                writer.WriteEndArray();
 
                 writer.WriteEndObject();
                 writer.Flush();
 
-                Debug.WriteLine(UTF8Encoding.UTF8.GetString(stream.ToArray()));
-
-                var asww = JsonDocument.Parse(UTF8Encoding.UTF8.GetString(stream.ToArray())).RootElement;
-
-                track.InspectableEntities[0].RestoreState(asww);
+                //string json = UTF8Encoding.UTF8.GetString(stream.ToArray());
+                //Debug.WriteLine(json);
             }
 
-            
+            //test loading
+            Load(fileName);
+        }
+        
 
-            /*var strWriter = new StringWriter();
 
-            var xmlSerializer = new XmlSerializer(track.InspectableEntities[0].GetType());
-            
-            xmlSerializer.Serialize(strWriter, track.InspectableEntities[0]);
-            */
-            //Debug.WriteLine(strWriter.ToString());
-            // File.WriteAllText(fileName,);
+        private void Load(string filename)
+        {
+            physicsWorld = new World(Vector2.Zero);
+            em.Clear();
+            track.Clear();
+            track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
+            JsonDocument json = JsonDocument.Parse(File.ReadAllText(filename));
+            Type typeByString(string s) => Type.GetType("MonoGameJam3Entry." + s);
+
+            wayPoints.RestoreState(json.RootElement.GetProperty("waypoints"));
+
+            foreach (var entityState in json.RootElement.GetProperty("entities").EnumerateArray())
+            {
+                var type_str = entityState.GetProperty("type").GetString();
+                var type = typeByString(type_str);
+                var ent = spawn_entity[type](Game._, physicsWorld, em);
+                ent.RestoreState(entityState);
+                em.AddEntity(ent);
+            }
+
+            foreach (var entityState in json.RootElement.GetProperty("track").EnumerateArray())
+            {
+                var type_str = entityState.GetProperty("type").GetString();
+                var type = typeByString(type_str);
+                var ent = spawn_track_entity[type](Game._, physicsWorld, track);
+                ent.RestoreState(entityState);
+                track.AddEntity(ent);
+            }
         }
     }
 }
