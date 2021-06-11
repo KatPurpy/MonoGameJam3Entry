@@ -42,10 +42,10 @@ namespace MonoGameJam3Entry
         float palmDistance = 10 * Game.PixelsPerMeter;
         void Rebuild()
         {
-            if (Positions.Count <= 1) return; 
+            if (Positions.Count <= 1) return;
             foreach (var p in palms) p.Destroy();
             palms.Clear();
-            if(Positions.Count > 1)
+            if (Positions.Count > 1)
             for(int i = 0; i < Positions.Count-1; i++)
             {
                 float distance = (Positions[i+1] - Positions[i]).Length() * Game.PixelsPerMeter;
@@ -73,7 +73,12 @@ namespace MonoGameJam3Entry
             }
         }
 
-        
+
+        public override void Destroy()
+        {
+            foreach (var p in palms) p.Destroy();
+            Dead = true;
+        }
 
         public override void IMGUI(GameTime time)
         {

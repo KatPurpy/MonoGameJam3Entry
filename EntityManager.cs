@@ -81,7 +81,10 @@ namespace DSastR.Core
         
         public void Clear()
         {
-            foreach (var ent in Entities) ent.Destroy();
+            for (int i = 0; i < Entities.Count; i++)
+            {
+                Entities[i]?.Destroy();
+            }
             Entities.Clear();
         }
     }

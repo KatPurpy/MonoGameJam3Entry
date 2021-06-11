@@ -11,6 +11,7 @@ using tainicom.Aether.Physics2D.Diagnostics;
 using DSastR.Core;
 using ImGuiNET;
 using System.Text.Json;
+using System.Diagnostics;
 
 namespace MonoGameJam3Entry
 {
@@ -42,25 +43,30 @@ namespace MonoGameJam3Entry
             get => RealPosition * Game.PixelsPerMeter;
         }
 
+        public int RacerID;
+
         public Track_Waypoints AI_Waypoints;
         int AI_WaypointID;
         Vector2 AI_TargetPosition;
-        
-        public Vector2 Velocity;
+
         public float Rotation;
         public float Speed = 10;
 
         public bool PlayerControlled = true;
 
+        int Laps = 0;
+        public TimeSpan time;
+
+
         World world;
         public Body physicsBody;
-
+        int frame = 0;
         public Bathtub(World world)
         {
             this.world = world;
             physicsBody = world.CreateEllipse(64/Game.PixelsPerMeter, 42/Game.PixelsPerMeter,8,1,bodyType: BodyType.Dynamic);
             physicsBody.LinearDamping = 1f;
-            physicsBody.SetRestitution(0.7f);
+            physicsBody.SetRestitution(1f);
             physicsBody.SetFriction(1.5f);
             physicsBody.FixedRotation = true;
             PlayerControlled = true;
@@ -71,15 +77,33 @@ namespace MonoGameJam3Entry
         {
             Left = Right = Up = Down = false;
 
-            
+            if(AI_TargetPosition == Vector2.Zero)
+            {
+                AI_TargetPosition = AI_Waypoints.Positions[0];
+            }
 
             if (PlayerControlled)
             {
                 var stat = Keyboard.GetState();
-                Left = stat.IsKeyDown(Keys.Left);
-                Right = stat.IsKeyDown(Keys.Right);
                 Up = stat.IsKeyDown(Keys.Up);
                 Down = stat.IsKeyDown(Keys.Down);
+                if (frame++ % 2 == 0)
+                {
+                    
+                    Left = stat.IsKeyDown(Keys.Left);
+                    Right = stat.IsKeyDown(Keys.Right);
+                    
+                }
+                GameScene.PlayerID = RacerID;
+
+                Vector2 dirToTarget = AI_Waypoints.Positions[AI_WaypointID] * Game.PixelsPerMeter - VisualPosition;
+                AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID];
+                if (dirToTarget.Length() < Track_Waypoints.triggerradius * Game.PixelsPerMeter)
+                {
+                    AI_WaypointID++;
+                    AI_WaypointID = AI_WaypointID % (AI_Waypoints.Positions.Count);
+                    LapCheck();
+                }
 
                 //Console.WriteLine(physicsBody.LinearVelocity);
                 //Console.WriteLine(physicsBody.Position);
@@ -92,13 +116,13 @@ namespace MonoGameJam3Entry
                 float angle = MathHelper.ToRadians(Rotation);
                 Vector2 dir = new Vector2(MathF.Cos(angle),MathF.Sin(angle));
                 Vector2 dirToTarget = AI_TargetPosition * Game.PixelsPerMeter - VisualPosition;
-                Console.WriteLine(dirToTarget.Length());
                 
                 if(dirToTarget.Length() < Track_Waypoints.aiTriggerRadius * Game.PixelsPerMeter)
                 {
                     AI_WaypointID++;
                     AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID % (AI_Waypoints.Positions.Count)];
-                    AI_TargetPosition += Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble()-0.5f,(float)r.NextDouble()-0.5f))*2;
+                    LapCheck();
+                    AI_TargetPosition += 0.5f* Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble() - 0.5f, (float)r.NextDouble() - 0.5f)) * 2;
                 }
 
                 dirToTarget.Normalize();
@@ -115,10 +139,29 @@ namespace MonoGameJam3Entry
             //Position += Speed * Velocity * (float)time.ElapsedGameTime.TotalSeconds;
         }
 
-
+        private void LapCheck()
+        {
+            if (AI_WaypointID % (AI_Waypoints.Positions.Count) == 0)
+            {
+                Laps++;
+                if(Laps == GameScene.Laps)
+                {
+                    if(RacerID == GameScene.PlayerID)
+                    {
+                        GameScene.WinFlag = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("LOSE!");
+                        Console.ReadLine();
+                    }
+                }
+            }
+        }
 
         private void Movement(GameTime time)
         {
+            this.time = this.time.Add(time.ElapsedGameTime);
             if (Left)
             {
                 Rotation -= (float)time.ElapsedGameTime.TotalSeconds * 200;
@@ -163,8 +206,12 @@ namespace MonoGameJam3Entry
             ImGui.Checkbox("PLAYER",ref PlayerControlled);
             AI_TargetPosition = ImGuiUtils.VecField("TARGET", AI_TargetPosition);
 
+            ImGui.InputInt("RacerID", ref RacerID);
+
+            ImGui.InputInt("Lap", ref Laps);
+
             ImGui.GetBackgroundDrawList().AddCircleFilled(
-                NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(AI_TargetPosition * Game.PixelsPerMeter, camera.View())),
+                NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(AI_TargetPosition*Game.PixelsPerMeter, camera.View())),
                 10,
                 0xFFFFFFFF
                 );
@@ -179,6 +226,14 @@ namespace MonoGameJam3Entry
             world.Remove(physicsBody);
         }
 
+        public static Color[] colors = new Color[]
+        {
+            Color.Red,
+            Color.Yellow,
+            Color.Green,
+            Color.Blue
+        };
+
         void DrawBathtub(Vector2 pos, Direction dir, Color color)
         {
             SpriteEffects se = SpriteEffects.None;
@@ -192,8 +247,9 @@ namespace MonoGameJam3Entry
                 dir = (8 - dir);
             }
             Game._.spriteBatch.Draw(CarTexture,
-               pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, GetLayerDepth()
+               pos, new Rectangle(0, (int)dir * 128, 128, 128), colors[RacerID], 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, GetLayerDepth()
                );
+            
             Game._.spriteBatch.Draw(CharacterTexture,
                pos, new Rectangle(0, (int)dir * 128, 128, 128), color, 0, new Vector2(128 / 2, 128 / 2), Vector2.One, se, GetLayerDepth()+0.001f
                 );
@@ -202,11 +258,15 @@ namespace MonoGameJam3Entry
         public override void SerializeState(Utf8JsonWriter writer)
         {
             WriteVisualPosition(writer);
+            writer.WriteNumber(nameof(RacerID),RacerID);
+            writer.WriteBoolean(nameof(PlayerControlled), PlayerControlled);
         }
 
         public override void RestoreState(JsonElement state)
         {
             ReadVisualPosition(state);
+            RacerID = state.GetProperty(nameof(RacerID)).GetInt32();
+            PlayerControlled = state.GetProperty(nameof(PlayerControlled)).GetBoolean();
         }
     }
 }

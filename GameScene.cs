@@ -26,64 +26,38 @@ namespace MonoGameJam3Entry
 
         Bathtub bathtub;
 
-        public void Win()
-        {
+        public static bool WinFlag;
+        public static bool LoseFlag;
 
+        public static int PlayerID;
+        public static int Laps = 1;
+
+        public static void Win()
+        {
+            WinFlag = true;
         }
 
         static Track_Waypoints wayPoints;
 
         public override void Enter()
         {
+            WinFlag = LoseFlag = false;
+            PlayerID = Laps = 0;
+
             em = new EntityManager(Game._);
             track = new EntityManager(Game._);
             camera = new Camera(new Vector2(0, 0));
             camera.Init();
             camera.Scale = Vector2.One * 0.5f;
             camera.VirtualRes = (800, 480);
-
-
-            //            bathtub = new Bathtub(physicsWorld);
-            //       bathtub.CarTexture = Assets.Sprites.basecart;
-            //           bathtub.CharacterTexture = Assets.Sprites.chr_monkey;
-            //         bathtub.AI_Waypoints = wayPoints;
-            //em.AddEntity(bathtub);
-  
-
             track.AddEntity(wayPoints = new Track_Waypoints());
-            
 
-            var testtt = new Track_PalmWall()
-            {
-                camera = GameScene.camera,
-                world = physicsWorld,
-                EntityManager = track
-            };
-            testtt.Positions.Add(new Vector2(0));
-            testtt.Positions.Add(new Vector2(30, 20));
-            testtt.Positions.Add(new Vector2(50, 10));
-            
-            track.AddEntity(testtt);
 
-            //bathtub.Position = new Vector2(gdm.PreferredBackBufferWidth/2, gdm.PreferredBackBufferHeight / 2);
-            physicsWorld.CreateEdge(new(-100, -100), new(100, -100));
 
             InitEditor();
         }
 
 
-        
-
-
-        enum EditMode
-        {
-            Entity,
-            Track
-        };
-
-        EditMode editMode = EditMode.Track;
-
-        
 
         EntityManager em;
         int currentEntityID;
@@ -136,11 +110,28 @@ namespace MonoGameJam3Entry
                     };
                 }
             },
+            {
+                typeof(Track_FinishBackground),
+                (game, world, entMan) =>
+                {
+                    return new Track_FinishBackground()
+                    {
+
+                    };
+                }
+            }
         };
 
         public override void Update(GameTime gameTime)
         {
-            //em.Update(gameTime);
+            if (testMode && !fileIOActive)
+            {
+                for (int i = 0; i < em.SerializableEntities.Count; i++) {
+                    if(em.SerializableEntities[i] is Bathtub b && b.PlayerControlled) focusedEntity = b;
+                }
+                if(!WinFlag && !LoseFlag)
+                em.Update(gameTime);
+            }
             track.Update(gameTime);
             physicsWorld.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
            
@@ -151,6 +142,8 @@ namespace MonoGameJam3Entry
        
         public override void Draw(GameTime time)
         {
+
+
             DrawBackground(0);
             DrawBackground(0.5f);
 
@@ -160,7 +153,65 @@ namespace MonoGameJam3Entry
             Game._.spriteBatch.End();
 
 
+
+            ImGuiRenderer.BeforeLayout(time);
+
+            if(WinFlag || LoseFlag)
+            {
+                int windWidth = 200;
+                int windHeight = 150;
+
+                ImGui.SetNextWindowPos(new System.Numerics.Vector2(Game._.gdm.PreferredBackBufferWidth/2-windWidth/2, Game._.gdm.PreferredBackBufferHeight/2-windHeight/2), ImGuiCond.FirstUseEver);
+                ImGui.SetNextWindowSize(new System.Numerics.Vector2(windWidth, windHeight), ImGuiCond.FirstUseEver);
+                ImGui.SetNextWindowFocus();
+
+                ImGui.GetStyle().WindowTitleAlign = System.Numerics.Vector2.One/2;
+                ImGui.Begin("Well done!", ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+                
+                ///ImGui.LabelText("", "=====TIME=====");
+
+                for (int i = 0; i < 4; i++)
+                {
+                    var b = em.SerializableEntities[i] as Bathtub;
+                    if (b.PlayerControlled)
+                    {
+                        ImGui.Text("Time: ");
+                        ImGui.SameLine();
+                        ImGui.Text(b.time.ToString(@"mm\:ss\.ff"));
+                    }
+                }
+
+                ImGui.End();
+            }
+
+            if (drawColliders)
+            {
+                Matrix proj = camera.Projection, view = camera.View(), world = Matrix.CreateScale(Game.PixelsPerMeter);
+                physicsDebugDraw.RenderDebugData(ref proj, ref view, ref world,depthStencilState: DepthStencilState.None,rasterizerState: RasterizerState.CullNone);
+            }
+            ImGui.GetStyle().WindowRounding = 0.0f;// <- Set this on init or use ImGui::PushStyleVar()
+            ImGui.GetStyle().ChildRounding = 0.0f;
+            ImGui.GetStyle().FrameRounding = 0.0f;
+            ImGui.GetStyle().GrabRounding = 0.0f;
+            ImGui.GetStyle().PopupRounding = 0.0f;
+            ImGui.GetStyle().ScrollbarRounding = 0.0f;
             EditorFunctions(time);
+
+            ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(),ImGui.GetFontSize() * 2,System.Numerics.Vector2.Zero ,0xFF00FF00, "AAAAAAAAAAAAAAAAAA");
+            ImGui.Begin("Entity Properties");
+            try
+            {
+                focusedEntity?.IMGUI(time);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            ImGui.End();
+            ImGuiRenderer.AfterLayout();
+
+
         }
 
         private static void DrawBackground(float half)
@@ -173,7 +224,6 @@ namespace MonoGameJam3Entry
 
             int width = camera.VirtualRes.Width / (int)(sprWidth * camera.Scale.X * spriteSpacing);
             int height = camera.VirtualRes.Height / (int)(sprHeight * camera.Scale.Y * spriteSpacing);
-            Console.WriteLine(width + " " + height);
             Point cam = new Point((int)camera.X / sprWidth / spriteSpacing, (int)camera.Y / sprHeight / spriteSpacing);
             for (int x = cam.X - width / 2 - offset; x < width / 2 + cam.X + offset; x++)
             {

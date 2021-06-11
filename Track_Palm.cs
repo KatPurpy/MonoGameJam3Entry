@@ -25,6 +25,7 @@ namespace MonoGameJam3Entry
         {
             this.world = world;
             body = world.CreateEllipse(32*1f/Game.PixelsPerMeter,16*1f/Game.PixelsPerMeter,8,1);
+            body.SetRestitution(1);
         }
 
         public override void IMGUI(GameTime time)
@@ -39,7 +40,7 @@ namespace MonoGameJam3Entry
         public override void Destroy()
         {
             base.Destroy();
-            world.Remove(body);
+            if(world.BodyList.Contains(body)) world.Remove(body);
         }
 
         public override void Draw(GameTime time)
@@ -54,7 +55,7 @@ namespace MonoGameJam3Entry
 
         public override void RestoreState(JsonElement json)
         {
-            throw new NotImplementedException();
+            ReadVisualPosition(json);
         }
     }
 }

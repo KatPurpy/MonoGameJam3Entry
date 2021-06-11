@@ -13,6 +13,7 @@ namespace MonoGameJam3Entry
         public static class Sprites {
             public static Texture2D basecart;
             public static Texture2D chr_monkey;
+            public static Texture2D checkerboard;
 
             public static MappedSpriteSheet jungle;
 
@@ -50,6 +51,7 @@ namespace MonoGameJam3Entry
             Sprites.jungle = new MappedSpriteSheet(game, "jungle.map");
             Sprites.basecart = Game.LoadTexture("IMAGES/basecart.bmp");
             Sprites.chr_monkey = Game.LoadTexture("IMAGES/chr_monkey.bmp");
+            Sprites.checkerboard = Game.LoadTexture("IMAGES/checkerboard.bmp");
         }
     }
 }

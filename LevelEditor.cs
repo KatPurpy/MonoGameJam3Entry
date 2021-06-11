@@ -21,10 +21,21 @@ namespace MonoGameJam3Entry
     {
         Type entityBrush;
         string fileName = "FILENAME";
-        bool saveMenuActive;
 
         DebugView physicsDebugDraw;
         bool drawColliders;
+
+        bool testMode;
+        bool fileIOActive;
+        bool fileIOSave;
+
+        enum EditMode
+        {
+            Entity,
+            Track
+        };
+
+        EditMode editMode = EditMode.Track;
 
         void InitEditor()
         {
@@ -40,13 +51,38 @@ namespace MonoGameJam3Entry
 
         private void EditorFunctions(GameTime time)
         {
-            if (drawColliders)
+
+            ImGui.Checkbox("Draw colliders", ref drawColliders);
+
+
+
+            if (testMode)
             {
-                Matrix proj = camera.Projection, view = camera.View(), world = Matrix.CreateScale(Game.PixelsPerMeter);
-                physicsDebugDraw.RenderDebugData(ref proj, ref view, ref world);
+                if (fileIOActive == false)
+                {
+                    if (ImGui.Button("End Test"))
+                    {
+                        Load(fileName);
+                        testMode = false;
+                    }
+                    return;
+                }
+            }
+            else
+            {
+                if(ImGui.Button("Start Test"))
+                {
+                    fileIOActive = true;
+                    fileIOSave = true;
+                    testMode = true;
+                }
             }
 
-            ImGuiRenderer.BeforeLayout(time);
+            
+
+            
+
+            
 
             if (ImGui.BeginMainMenuBar())
             {
@@ -54,33 +90,51 @@ namespace MonoGameJam3Entry
                 {
                     if (ImGui.MenuItem("Save"))
                     {
-                        saveMenuActive = true;
+                        fileIOActive = true;
+                        fileIOSave = true;
+                    }
+                    if (ImGui.MenuItem("Load"))
+                    {
+                        fileIOActive = true;
+                        fileIOSave = false;
                     }
                     ImGui.EndMenu();
                 }
-
-
                 ImGui.EndMainMenuBar();
             }
 
-            if (saveMenuActive && ImGui.Begin("SaveModal"))
+            if (fileIOActive &&
+                
+                ImGui.Begin("SaveModal",ImGuiWindowFlags.NoTitleBar))
             {
-                ImGui.InputText("FileName", ref fileName, 64);
-                if (ImGui.Button("SAVE"))
+                
+                var a = FilePicker.GetFilePicker(this, "");
+                if (a.Draw())
                 {
-                    Save(fileName);
-                    saveMenuActive = false;
+                    fileName = (a.SelectedFile);
+                    FilePicker.RemoveFilePicker(this);
+                }
+                if (fileName == null) fileName = "FILENAME";
+                ImGui.PushItemWidth(400);
+                ImGui.InputText("FileName", ref fileName, 512);
+                ImGui.PopItemWidth();
+
+                if (ImGui.Button(fileIOSave ? "SAVE" : "LOAD"))
+                {
+                    if (fileIOSave) Save(fileName);
+                    else Load(fileName);
+                    fileIOActive = false;
                 }
                 if (ImGui.Button("Cancel"))
                 {
-   
-                    saveMenuActive = false;
+                    testMode = false;
+                    fileIOActive = false;
                     
                 }
                 ImGui.EndPopup();
             }
 
-            ImGui.Checkbox("Draw colliders", ref drawColliders);
+            
 
             ImGui.Begin("ENTITY EDITOR");
 
@@ -104,18 +158,8 @@ namespace MonoGameJam3Entry
                     break;
             }
             ImGui.End();
-            ImGui.Begin("Entity Properties");
-            try
-            {
-                focusedEntity?.IMGUI(time);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            ImGui.End();
-            ImGuiRenderer.AfterLayout();
+
+  
         }
 
         private void EntityEditor(GameTime time, string label, EntityManager manager, ref int currentEntityID, ref Entity currentEntity, Dictionary<Type, Func<Game, World, EntityManager, Entity>> instancables)
@@ -147,30 +191,29 @@ namespace MonoGameJam3Entry
                     ImGui.EndMenu();
                 }
             }
+           
+            StringBuilder sb = new StringBuilder();
+            if (ImGui.BeginChildFrame(1, new System.Numerics.Vector2(200, 200)))
+            {
+                for (int i = 0; i < manager.SerializableEntities.Count; i++)
+                {
+                    var ent = manager.SerializableEntities[i];
+                    sb.Clear();
+                    sb.Append(i);
+                    sb.Append(' ');
+                    sb.Append(ent.GetType().Name);
+                    if (ImGui.Selectable(sb.ToString(), i == currentEntityID))
+                    {
+                        currentEntityID = i;
+                        break;
+                    }
+                }
+                ImGui.EndChildFrame();
+            }
 
             
 
-            //var a = manager.Entities.Where(e => e.ShowInInspector).Select(a => manager.Entities.IndexOf(a).ToString() + " (" + a.GetType().Name + ")").ToArray();
-
-
-            List<StringBuilder> s = new List<StringBuilder>();
-            for (int i = 0; i < manager.InspectableEntities.Count; i++)
-            {
-                var ent = manager.InspectableEntities[i];
-
-
-                if (ent.ShowInInspector)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append(i);
-                    sb.Append(" ");
-                    sb.Append(ent.GetType().Name);
-                    s.Add(sb);
-                }
-
-            }
-
-            ImGui.ListBox("", ref currentEntityID, s.Select(s => s.ToString()).ToArray(), s.Count, 10);
+            //ImGui.ListBox("", ref currentEntityID, s.Select(s => s.ToString()).ToArray(), s.Count, 10);
 
 
             if (focusedEntity?.GetType() != typeof(Track_Waypoints) && ImGui.Button("Delete Entity"))
@@ -183,7 +226,7 @@ namespace MonoGameJam3Entry
             {
                 if (ImGui.Button("YES"))
                 {
-                    manager.Entities[currentEntityID].Destroy();
+                    manager.SerializableEntities[currentEntityID].Destroy();
                     ImGui.CloseCurrentPopup();
                 }
                 if (ImGui.Button("NO"))
@@ -194,11 +237,11 @@ namespace MonoGameJam3Entry
             }
 
 
-            if (-1 < currentEntityID && currentEntityID < manager.InspectableEntities.Count)
+            if (-1 < currentEntityID && currentEntityID < manager.SerializableEntities.Count)
             {
-                var pos = NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(manager.InspectableEntities[currentEntityID].VisualPosition, camera.View()));
+                var pos = NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(manager.SerializableEntities[currentEntityID].VisualPosition, camera.View()));
 
-                currentEntity = manager.InspectableEntities[currentEntityID];
+                currentEntity = manager.SerializableEntities[currentEntityID];
 
                 ImGui.GetBackgroundDrawList().AddCircleFilled(pos, MathF.Abs(MathF.Sin(2 * (float)time.TotalGameTime.TotalSeconds)) * 20 + 5, (uint)(MathHelper.Lerp(0x55FFFF00, 0x55FF00FF, MathF.Abs(MathF.Sin(4 * (float)time.TotalGameTime.TotalSeconds)))));
             }
@@ -269,6 +312,9 @@ namespace MonoGameJam3Entry
         private void Load(string filename)
         {
             physicsWorld = new World(Vector2.Zero);
+            physicsDebugDraw.Dispose();
+            physicsDebugDraw = new DebugView(physicsWorld);
+            physicsDebugDraw.LoadContent(Game._.GraphicsDevice, Game._.Content);
             em.Clear();
             track.Clear();
             track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
