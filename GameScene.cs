@@ -29,7 +29,7 @@ namespace MonoGameJam3Entry
         
         public static int PlayerID;
         public static bool WrongWay;
-        public static int GoalLaps = 1;
+        public static int GoalLaps = 3;
         public static int PlayerLaps;
         public static List<TimeSpan> LapTimers = new List<TimeSpan>() { new TimeSpan() };
 
@@ -38,7 +38,14 @@ namespace MonoGameJam3Entry
         public static void Win()
         {
             WinFlag = true;
+            Game.Win();
         }
+
+        public static void Lose()
+        {
+            LoseFlag = false;
+        }
+
         bool started;
 
 
@@ -261,9 +268,21 @@ namespace MonoGameJam3Entry
                         }
                     }
 
-                    ImGui.Button("Level select");
+                    if(ImGui.Button("Level select"))
+                    {
+                        Game._.SceneManager.SwitchScene(new MainMenuScene()
+                        {
+                            screen = MainMenuScene.Screen.Race_SelectTrack
+                        });
+                    }
                     ImGui.SameLine(110);
-                    ImGui.Button("Continue");
+                    if (ImGui.Button("Continue"))
+                    {
+                        Game._.SceneManager.SwitchScene(new MainMenuScene()
+                        {
+                            screen = MainMenuScene.Screen.Race_SelectTrack
+                        });
+                    }
 
                     ImGui.End();
                 }
@@ -274,13 +293,8 @@ namespace MonoGameJam3Entry
                     if (ImGui.Button("YES"))
                     {
                         ImGui.End();
-                        var scene = new GameScene();
-                        EditorMode = false;
-                       
-                        scene.Run = true;
-                        Game._.SceneManager.SwitchScene(scene);
-                        scene.Load(levelName);
-                        
+
+                        StartLevel(levelName);
                         return;
                     }
                     ImGui.SameLine(90 + 53);
@@ -289,6 +303,15 @@ namespace MonoGameJam3Entry
                 }
 
             }
+        }
+
+        public static void StartLevel(string levelName)
+        {
+            var scene = new GameScene();
+            EditorMode = false;
+            scene.Run = true;
+            Game._.SceneManager.SwitchScene(scene);
+            scene.Load(levelName);
         }
 
         private static void DrawBackground(float half)

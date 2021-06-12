@@ -62,6 +62,8 @@ namespace MonoGameJam3Entry
         World world;
         public Body physicsBody;
         int frame = 0;
+
+        public static bool AI_RacingMode = true;
         
         public Bathtub(World world)
         {
@@ -144,10 +146,13 @@ namespace MonoGameJam3Entry
                 if(dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)
                 {
                     AI_WaypointID++;
-                    AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID % (AI_Waypoints.Positions.Count)];
-                    LapCheck();
-                    AI_TurnThreshold = (float)r.NextDouble() * 3;
-                    //AI_TargetPosition += 0.5f* Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble() - 0.5f, (float)r.NextDouble() - 0.5f)) * 2;
+                    if (AI_RacingMode)
+                    {
+                        AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID % (AI_Waypoints.Positions.Count)];
+                        LapCheck();
+                        AI_TurnThreshold = (float)r.NextDouble() * 3;
+                    }
+                        //AI_TargetPosition += 0.5f* Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble() - 0.5f, (float)r.NextDouble() - 0.5f)) * 2;
                 }
 
                 dirToTarget.Normalize();
@@ -173,7 +178,13 @@ namespace MonoGameJam3Entry
 
                 if(Laps == GameScene.GoalLaps)
                 {
-                    GameScene.LoseFlag = !(GameScene.WinFlag = RacerID == GameScene.PlayerID);
+                    if (RacerID == GameScene.PlayerID) {
+                        GameScene.Win();
+                    }
+                    else
+                    {
+                        GameScene.Lose();
+                    }
                     return;
                 }
 

@@ -14,6 +14,7 @@ using System.Threading.Tasks.Dataflow;
 using Dcrew.Camera;
 using ImGuiNET;
 using DSastR.Core;
+using System.Timers;
 
 namespace MonoGameJam3Entry
 {
@@ -27,11 +28,11 @@ namespace MonoGameJam3Entry
         {
             gdm = new GraphicsDeviceManager(this);
 
-            
+
             Content.RootDirectory = "";
         }
         SoundEffect dd;
-       
+
         StreamedSound ss;
 
         public static ImGuiRenderer ImGuiRenderer;
@@ -40,9 +41,19 @@ namespace MonoGameJam3Entry
 
         static bool loadedfont = false;
         static ImFontPtr fontPTR;
+        Timer autoSave = new Timer();
+
+        public static Action DoAfterWin;
+
+        public static void Win()
+        {
+            DoAfterWin();
+            PlayerProfile.Save();
+        }
 
         protected override void Initialize()
         {
+            
             _ = this;
             SceneManager = new(this);
             IsMouseVisible = true;
@@ -53,10 +64,13 @@ namespace MonoGameJam3Entry
             ImGuiRenderer = new ImGuiRenderer(this);
             ImGuiRenderer.RebuildFontAtlas();
 
-            SceneManager.SwitchScene(new MainMenuScene());
-            //SceneManager.SwitchScene(new GameScene());
+
             
+
+            PlayerProfile.Load();
+            SceneManager.SwitchScene(new MainMenuScene());
         }
+
         protected override void LoadContent()
         {
             gdm.PreferredBackBufferWidth = 1280;

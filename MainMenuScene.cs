@@ -3,6 +3,7 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,9 +22,15 @@ namespace MonoGameJam3Entry
             Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE2),
             Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE3)};
             levelBlocked = Game.ImGuiRenderer.BindTexture(Assets.Sprites.@lock);
+
         }
 
         public override void Leave()
+        {
+
+        }
+
+        ~MainMenuScene()
         {
             foreach (var levelThumbnail in levelThumbnail)
             {
@@ -36,14 +43,26 @@ namespace MonoGameJam3Entry
 
         }
 
-        enum Screen
+        public enum Screen
         {
             MainMenu,
             SelectMode,
             Race_SelectTrack,
-
+            Football,
+            SpaceArena,
+            Cutscene,
             Goodbye
             
+        }
+
+        public enum CutsceneType
+        {
+            RaceStoryIntro,
+            RaceStoryEnding,
+            FootballStoryIntro,
+            FootballStoryEnding,
+            SpaceStoryIntro,
+            SpaceStoryEnding
         }
 
         bool butt(string text)
@@ -53,9 +72,41 @@ namespace MonoGameJam3Entry
             return ImGui.Button(text);
         }
 
-        Screen screen;
+        public Screen screen;
         public override void Draw(GameTime gameTime)
         {
+            //int a = 0;
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.Race1Unlock                     );
+
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.Race2Unlock                     );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.Race3Unlock                     );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.FootballUnlock                  );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.SpaceUnlock                     );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.PlayedRaceStoryIntro            );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.PlayedRaceStoryEnding           );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.PlayedFootballStoryIntro        );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.PlayedFootballStoryEnding       );
+            //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.PlayedSpaceStoryIntro           );
+            //ImGui.Checkbox((a++).ToString(),ref PlayerProfile.PlayedSpaceStoryEnding);
+
+            //ImGui.Text(PlayerProfile.GetPacked().ToString());
+
+            //foreach(var b in PlayerProfile.DebugGetFlags())
+            //{
+            //    ImGui.Text(b.ToString());
+            //    ImGui.SameLine();
+            //}
+
+            //if(ImGui.ArrowButton("Test Save",ImGuiDir.Down))
+            //{
+            //    PlayerProfile.Save();
+            //}return;
+
+
+
+            
+            
+
             switch (screen) {
                 case Screen.MainMenu: 
                     ImGuiUtils.BeginFixedWindow("Main Menu", 180, 158);
@@ -93,12 +144,30 @@ namespace MonoGameJam3Entry
                     
                     if(ImGui.ImageButton(levelThumbnail[0], new(180, 90)))
                     {
-
+                        Game.DoAfterWin = () =>
+                        {
+                            PlayerProfile.Race2Unlock = true;
+                        };
+                        GameScene.StartLevel("LEVELS/RACE1");
                     }
                     ImGui.SameLine();
-                    ImGui.ImageButton(levelThumbnail[1], new(180, 90));
+                    if (PlayerProfile.Race2Unlock && ImGui.ImageButton(levelThumbnail[1], new(180, 90)))
+                    {
+                        Game.DoAfterWin = () =>
+                        {
+                            PlayerProfile.Race3Unlock = true;
+                        };
+                        GameScene.StartLevel("LEVELS/RACE2");
+                    }
                     ImGui.SameLine();
-                    ImGui.ImageButton(levelThumbnail[2], new(180, 90));
+                    if (PlayerProfile.Race3Unlock && ImGui.ImageButton(levelThumbnail[2], new(180, 90)))
+                    {
+                        Game.DoAfterWin = () =>
+                        {
+                            PlayerProfile.FootballUnlock = true;
+                        };
+                        GameScene.StartLevel("LEVELS/RACE3");
+                    }
 
                     ImGui.Text("");
 
@@ -111,6 +180,37 @@ namespace MonoGameJam3Entry
                     ImGui.End();
                     break;
         }
+
+            if (screen == Screen.Race_SelectTrack && !PlayerProfile.PlayedRaceStoryIntro)
+            {
+                Debug.WriteLine("MUST PLAY RACE INTRO CUTSCENE");
+            }
+
+            if(screen == Screen.Race_SelectTrack && PlayerProfile.FootballUnlock && !PlayerProfile.PlayedFootballStoryEnding)
+            {
+                Debug.WriteLine("MUST PLAY RACE ENDING CUTSCENE");
+            }
+
+            if (screen == Screen.Football && !PlayerProfile.PlayedFootballStoryIntro)
+            {
+                Debug.WriteLine("MUST PLAY FOOTBALL INTRO CUTSCENE");
+            }
+
+            if (screen == Screen.Football && PlayerProfile.SpaceUnlock && !PlayerProfile.PlayedFootballStoryEnding)
+            {
+                Debug.WriteLine("MUST PLAY FOOTBALL OUTRO CUTSCENE");
+            }
+
+            if(screen == Screen.SpaceArena && !PlayerProfile.PlayedRaceStoryIntro)
+            {
+                Debug.WriteLine("MUST PLAY SPACE ARENA INTRO CUTSCENE");
+            }
+
+            if(screen == Screen.SpaceArena && !PlayerProfile.SpaceComplete)
+            {
+                Debug.WriteLine("ENDING CUTSCENE MUST BE PLAYED");
+            }
+
             ImGui.GetBackgroundDrawList().AddText(new(0,720-18),Color.Black.PackedValue, "(c) Kat Purpy, 2021");
             ;
         }
