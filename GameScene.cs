@@ -19,30 +19,28 @@ namespace MonoGameJam3Entry
     {
         World physicsWorld = new World(Vector2.Zero);
 
-        ImGuiRenderer ImGuiRenderer;
-
         public static Camera camera;
         Entity focusedEntity;
-
-        Bathtub bathtub;
 
         public static bool EditorMode = true;
 
         public static bool WinFlag;
         public static bool LoseFlag;
-
+        
         public static int PlayerID;
+        public static bool WrongWay;
         public static int GoalLaps = 1;
         public static int PlayerLaps;
         public static List<TimeSpan> LapTimers = new List<TimeSpan>() { new TimeSpan() };
+
+        TimeSpan timeSinceLoad = new();
 
         public static void Win()
         {
             WinFlag = true;
         }
+        bool started;
 
-        static bool loadedfont = false;
-        static ImFontPtr fontPTR;
 
         static Track_Waypoints wayPoints;
 
@@ -50,7 +48,6 @@ namespace MonoGameJam3Entry
         {
             WinFlag = LoseFlag = false;
             PlayerID = 0;
-            GoalLaps = 3;
             LapTimers = new () { new() };
 
             em = new EntityManager(Game._);
@@ -61,9 +58,8 @@ namespace MonoGameJam3Entry
             camera.VirtualRes = (800, 480);
             track.AddEntity(wayPoints = new Track_Waypoints());
 
-
-
-            InitEditor();
+            started = EditorMode == true;
+            if (EditorMode) InitEditor();
         }
 
 
@@ -99,7 +95,7 @@ namespace MonoGameJam3Entry
         {
             {
                 typeof(Track_Palm),
-                (game, world,_) =>
+                (game, world, _) =>
                 {
                     return new Track_Palm(world)
                     {
@@ -109,7 +105,7 @@ namespace MonoGameJam3Entry
             },
             {
                 typeof(Track_PalmWall),
-                (game, world,entMan) =>
+                (game, world, entMan) =>
                 {
                     return new Track_PalmWall()
                     {
@@ -121,38 +117,35 @@ namespace MonoGameJam3Entry
             },
             {
                 typeof(Track_FinishBackground),
-                (game, world, entMan) =>
-                {
-                    return new Track_FinishBackground()
-                    {
-
-                    };
-                }
+                (game, world, entMan) => new Track_FinishBackground()
+            },
+            {
+                typeof(Track_Decoration),
+                (_, _, _) => new Track_Decoration()
+            },
+            {
+                typeof(Track_FlowerField),
+                (_,_,_)=>new Track_FlowerField()
             }
         };
 
         public override void Update(GameTime gameTime)
         {
-            if (Run && !fileIOActive)
+            if (Run && !fileIOActive && started)
             {
                 for (int i = 0; i < em.SerializableEntities.Count; i++) {
                     if(em.SerializableEntities[i] is Bathtub b && b.PlayerControlled) focusedEntity = b;
                 }
-                if(!WinFlag && !LoseFlag)
-                em.Update(gameTime);
+                if(!WinFlag && !LoseFlag) em.Update(gameTime);
             }
             track.Update(gameTime);
             physicsWorld.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
            
             if(focusedEntity != null) camera.XY = Vector2.Lerp(camera.XY, focusedEntity.VisualPosition, 0.2f);
-     
-                //camera.XY = Vector2.Lerp(camera.XY, bathtub.VisualPosition - bathtub.Velocity * Game.PixelsPerMeter, 0.2f);
         }
-       
+        int frame = 0;
         public override void Draw(GameTime time)
         {
-
-
             DrawBackground(0);
             DrawBackground(0.5f);
 
@@ -161,29 +154,46 @@ namespace MonoGameJam3Entry
             track.Draw(time, camera);
             Game._.spriteBatch.End();
 
-
-            if (!loadedfont)
-            {
-
-                fontPTR = ImGui.GetIO().Fonts.AddFontFromFileTTF("FONT/ComicNeue-Bold.ttf", 18, null, ImGui.GetIO().Fonts.GetGlyphRangesDefault());
-
-                ImGuiRenderer.RebuildFontAtlas();
-
-                loadedfont = true;
-            }
-            ImGuiRenderer.BeforeLayout(time);
-            ImGui.PushFont(fontPTR);
-            ImGuiUtils.SetStyle();
-
             ResultScreen();
 
+            if (EditorMode)
+            {
+                EditorFunctions(time);
+            }
+            else if(!started)
+            {
+                //i don't flopping what magic dust does this work on
+                //but i don't have time to figure it out
+                timeSinceLoad += time.ElapsedGameTime;
+                var _time = MathF.Abs((int)timeSinceLoad.TotalSeconds - 1 - 3);
+                switch(_time)
+                {
+                    case 0:
+                        ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 5, new(640 - 40, 360 - 40), frame % 2 == 0 ? Color.Red.PackedValue : Color.Yellow.PackedValue,
+                    "GO!");
+                        break;
+                    case 1:
+                    case 2:
+                    case 3:
+                    ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(),ImGui.GetFontSize()*5,new (640-40,360-40), frame % 2 == 0 ? Color.Red.PackedValue : Color.Yellow.PackedValue,
+                        _time.ToString());
+                        break;
+                        
+                }
+                if(timeSinceLoad.TotalSeconds > 5)
+                {
+                    started = true;
+                }
+            }
+           
 
-
-            EditorFunctions(time);
-
-            ImGui.GetBackgroundDrawList().AddText(fontPTR, ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280 - 200), 0xFF00FF00,
+            ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280 - 200), 0xFF00FF00,
                 string.Format("LAPS: {0}/{1}", PlayerLaps, GoalLaps));
 
+            if(frame++%2==0 && WrongWay)
+            ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280/2-200), Color.Red.PackedValue,
+                string.Format("WRONG WAY", PlayerLaps, GoalLaps));
+            
             for (int i = LapTimers.Count; i-- > 0;)
             {
                 Color color;
@@ -203,25 +213,24 @@ namespace MonoGameJam3Entry
                     color = Color.White;
                 }
 
-                //var color = LapTimers.Count > 1 && i != LapTimers.Count ? (LapTimers[i].Ticks > LapTimers[i - 1].Ticks ?
-                //    Color.Yellow.PackedValue :
-                //   Color.Red.PackedValue) : Color.White.PackedValue; 
-                ImGui.GetBackgroundDrawList().AddText(fontPTR, ImGui.GetFontSize() * 2, (LapTimers.Count - i + 0.5f) * System.Numerics.Vector2.UnitY * ImGui.GetFontSize() * 2 + System.Numerics.Vector2.UnitX * (1280 - 200),
+                ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 2, (LapTimers.Count - i + 0.5f) * System.Numerics.Vector2.UnitY * ImGui.GetFontSize() * 2 + System.Numerics.Vector2.UnitX * (1280 - 200),
                     color.PackedValue,
                     LapTimers[i].ToString(@"mm\:ss\.ff"));
             }
-            ImGui.Begin("Entity Properties");
-            try
+            if (EditorMode)
             {
-                focusedEntity?.IMGUI(time);
+                ImGui.Begin("Entity Properties");
+                try
+                {
+                    focusedEntity?.IMGUI(time);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+                ImGui.End();
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            ImGui.End();
-            ImGuiRenderer.AfterLayout();
 
 
         }
@@ -264,10 +273,15 @@ namespace MonoGameJam3Entry
                     ImGui.Text("Try again?");
                     if (ImGui.Button("YES"))
                     {
+                        ImGui.End();
                         var scene = new GameScene();
-                        scene.Load(levelName);
+                        EditorMode = false;
+                       
                         scene.Run = true;
                         Game._.SceneManager.SwitchScene(scene);
+                        scene.Load(levelName);
+                        
+                        return;
                     }
                     ImGui.SameLine(90 + 53);
                     ImGui.Button("No");
@@ -304,7 +318,7 @@ namespace MonoGameJam3Entry
 
         public override void Leave()
         {
-            throw new NotImplementedException();
+            physicsDebugDraw?.Dispose();
         }
     }
 }

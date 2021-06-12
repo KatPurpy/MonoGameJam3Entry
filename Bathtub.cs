@@ -75,6 +75,15 @@ namespace MonoGameJam3Entry
         }
         bool Left, Right, Up, Down;
         Random r = new();
+
+        public override void Start()
+        {
+            var pos = AI_Waypoints.Positions[0] * Game.PixelsPerMeter;
+            var dir = pos * Game.PixelsPerMeter - VisualPosition;
+            dir = new(MathF.Round(dir.X), MathF.Round(dir.Y));
+            Rotation = MathHelper.ToDegrees(MathF.Atan2(dir.Y,dir.X))+90;
+        }
+
         public override void Update(GameTime time)
         {
             Left = Right = Up = Down = false;
@@ -84,8 +93,12 @@ namespace MonoGameJam3Entry
                 AI_TargetPosition = AI_Waypoints.Positions[0];
             }
 
+            float angle = MathHelper.ToRadians(Rotation);
+            Vector2 dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+
             if (PlayerControlled)
             {
+
                 var stat = Keyboard.GetState();
                 Up = stat.IsKeyDown(Keys.Up);
                 Down = stat.IsKeyDown(Keys.Down);
@@ -113,6 +126,10 @@ namespace MonoGameJam3Entry
                     GameScene.LapTimers[Laps] = GameScene.LapTimers[Laps].Add(time.ElapsedGameTime);
                 }
                 catch { }
+                dirToTarget.Normalize();
+                float a = MathF.Acos(Vector2.Dot(dirToTarget, dir));
+                Console.WriteLine(MathHelper.ToDegrees(a));
+                //GameScene.WrongWay = a > MathHelper.ToRadians(90);
                 //Console.WriteLine(physicsBody.LinearVelocity);
                 //Console.WriteLine(physicsBody.Position);
                 //physicsBody.Rotation = -rads + MathHelper.ToRadians(90);
@@ -121,8 +138,7 @@ namespace MonoGameJam3Entry
             {
                 Up = true;
                 
-                float angle = MathHelper.ToRadians(Rotation);
-                Vector2 dir = new Vector2(MathF.Cos(angle),MathF.Sin(angle));
+
                 Vector2 dirToTarget = AI_TargetPosition * Game.PixelsPerMeter - VisualPosition;
                 
                 if(dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)

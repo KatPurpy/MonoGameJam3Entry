@@ -34,8 +34,8 @@
         "Y": 161.55371
       },
       {
-        "X": 72.309425,
-        "Y": 100.311035
+        "X": 83.10943,
+        "Y": 111.00421
       },
       {
         "X": 135.46616,
@@ -128,9 +128,9 @@
   "track": [
     {
       "type": "Track_FinishBackground",
-      "X": -68,
+      "X": -56,
       "Y": -10,
-      "W": 132,
+      "W": 97,
       "H": 19
     },
     {
@@ -297,8 +297,8 @@
           "Y": 185.01176
         },
         {
-          "X": 97.53041,
-          "Y": 126.184525
+          "X": 113.61273,
+          "Y": 132.90462
         },
         {
           "X": 156.44014,
@@ -317,8 +317,8 @@
           "Y": 71.08098
         },
         {
-          "X": 380.858,
-          "Y": -65.50972
+          "X": 366.91013,
+          "Y": -52.844307
         },
         {
           "X": 301.6031,
@@ -329,133 +329,6 @@
           "Y": -137.82555
         }
       ]
-    },
-    {
-      "type": "Track_FlowerField",
-      "X": -1611,
-      "Y": -2120,
-      "W": 6720,
-      "H": 4530
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -602.9834,
-        "Y": -768.8382
-      },
-      "decType": 1
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -511.983,
-        "Y": -655.172
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -578.65,
-        "Y": -499.50485
-      },
-      "decType": 1
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -659.65,
-        "Y": -484.8382
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -789.65,
-        "Y": -120.838196
-      },
-      "decType": 1
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -571.65,
-        "Y": -290.172
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -496.31653,
-        "Y": 75.161804
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -670.317,
-        "Y": 287.828
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -572.65,
-        "Y": 641.8285
-      },
-      "decType": 1
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -556.317,
-        "Y": -1166.1715
-      },
-      "decType": 1
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -576.31665,
-        "Y": -998.17145
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": -496.31665,
-        "Y": -827.50476
-      },
-      "decType": 2
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": 478,
-        "Y": 87
-      },
-      "decType": 1
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": 1635.667,
-        "Y": -558.333
-      },
-      "decType": 4
-    },
-    {
-      "type": "Track_Decoration",
-      "VisualPosition": {
-        "X": 2245,
-        "Y": -1310
-      },
-      "decType": 1
     }
   ]
 }

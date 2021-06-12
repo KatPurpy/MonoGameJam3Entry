@@ -34,9 +34,12 @@ namespace MonoGameJam3Entry
        
         StreamedSound ss;
 
+        public static ImGuiRenderer ImGuiRenderer;
 
+        public SceneManager SceneManager;
 
-        public SceneManager SceneManager;       
+        static bool loadedfont = false;
+        static ImFontPtr fontPTR;
 
         protected override void Initialize()
         {
@@ -47,16 +50,11 @@ namespace MonoGameJam3Entry
             spriteBatch = new SpriteBatch(gdm.GraphicsDevice);
 
             Assets.Load(this);
+            ImGuiRenderer = new ImGuiRenderer(this);
+            ImGuiRenderer.RebuildFontAtlas();
 
-            //var a = dd.CreateInstance();
-            //a.IsLooped = true;
-
-
-           
-            ///      a.Play();
-            //     ss.Play();
-
-            SceneManager.SwitchScene(new GameScene());
+            SceneManager.SwitchScene(new MainMenuScene());
+            //SceneManager.SwitchScene(new GameScene());
             
         }
         protected override void LoadContent()
@@ -78,7 +76,25 @@ namespace MonoGameJam3Entry
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            Game.ImGuiRenderer.BeforeLayout(gameTime);
+            unsafe
+            {
+                if ((ImFont*)0 == fontPTR.NativePtr)
+                {
+
+                    fontPTR = ImGui.GetIO().Fonts.AddFontFromFileTTF("FONT/ComicNeue-Bold.ttf", 18, null, ImGui.GetIO().Fonts.GetGlyphRangesDefault());
+
+                    Game.ImGuiRenderer.RebuildFontAtlas();
+
+                    loadedfont = true;
+                }
+            }
+            ImGui.PushFont(fontPTR);
+            ImGuiUtils.SetStyle();
             SceneManager.Draw(gameTime);
+            
+            Game.ImGuiRenderer.AfterLayout();
             //cam.Scale = Vector2.One * PhysicsScale; 
 
 

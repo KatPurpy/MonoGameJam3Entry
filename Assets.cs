@@ -11,11 +11,17 @@ namespace MonoGameJam3Entry
     public static class Assets
     {
         public static class Sprites {
+            public static Texture2D RACE1;
+            public static Texture2D RACE2;
+            public static Texture2D RACE3;
+
             public static Texture2D basecart;
             public static Texture2D chr_monkey;
             public static Texture2D checkerboard;
+            public static Texture2D @lock;
 
             public static MappedSpriteSheet jungle;
+            
 
             public static MappedSprite palm => jungle[nameof(palm)];
             public static MappedSprite anthill => jungle[nameof(anthill)];
@@ -29,7 +35,7 @@ namespace MonoGameJam3Entry
             public static MappedSprite grass2 => jungle[nameof(grass2)];
             public static MappedSprite grass3 => jungle[nameof(grass3)];
             public static MappedSprite grass4 => jungle[nameof(grass4)];
-            public static MappedSprite lower1 => jungle[nameof(lower1)];
+            public static MappedSprite flower1 => jungle[nameof(flower1)];
             public static MappedSprite flower2 => jungle[nameof(flower2)];
             public static MappedSprite flower3 => jungle[nameof(flower3)];
             public static MappedSprite flower4 => jungle[nameof(flower4)];
@@ -37,6 +43,8 @@ namespace MonoGameJam3Entry
             public static MappedSprite flower6 => jungle[nameof(flower6)];
             public static MappedSprite flower7 => jungle[nameof(flower7)];
             public static MappedSprite flower8 => jungle[nameof(flower8)];
+
+            public static Dictionary<DecorationType, MappedSprite> decorMap;
         }
         public static class Sounds {
             public static SoundEffect click;
@@ -52,6 +60,34 @@ namespace MonoGameJam3Entry
             Sprites.basecart = Game.LoadTexture("IMAGES/basecart.bmp");
             Sprites.chr_monkey = Game.LoadTexture("IMAGES/chr_monkey.bmp");
             Sprites.checkerboard = Game.LoadTexture("IMAGES/checkerboard.bmp");
+            Sprites.@lock = Game.LoadTexture("IMAGES/lock.bmp");
+            Sprites.RACE1 = Game.LoadTexture("IMAGES/RACE1.bmp");
+            Sprites.RACE2 = Game.LoadTexture("IMAGES/RACE2.bmp");
+            Sprites.RACE3 = Game.LoadTexture("IMAGES/RACE3.bmp");
+
+            Sprites.decorMap = new()
+            {
+                { DecorationType.palm, Sprites.palm },
+                { DecorationType.anthill, Sprites.anthill },
+                { DecorationType.rock1, Sprites.rock1 },
+                { DecorationType.rock2, Sprites.rock2 },
+                { DecorationType.rock3, Sprites.rock3 },
+                { DecorationType.rock4, Sprites.rock4 },
+                { DecorationType.water, Sprites.water },
+                { DecorationType.ground, Sprites.ground },
+                { DecorationType.grass1, Sprites.grass1 },
+                { DecorationType.grass2, Sprites.grass2 },
+                { DecorationType.grass3, Sprites.grass3 },
+                { DecorationType.grass4, Sprites.grass4 },
+                { DecorationType.flower1, Sprites.flower1 },
+                { DecorationType.flower2, Sprites.flower2 },
+                { DecorationType.flower3, Sprites.flower3 },
+                { DecorationType.flower4, Sprites.flower4 },
+                { DecorationType.flower5, Sprites.flower5 },
+                { DecorationType.flower6, Sprites.flower6 },
+                { DecorationType.flower7, Sprites.flower7 },
+                { DecorationType.flower8, Sprites.flower8 }
+            };
         }
     }
 }

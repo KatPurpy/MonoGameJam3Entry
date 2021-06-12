@@ -46,8 +46,6 @@ namespace MonoGameJam3Entry
             physicsDebugDraw.AppendFlags(DebugViewFlags.Shape);
             physicsDebugDraw.LoadContent(Game._.gdm.GraphicsDevice, Game._.Content);
 
-            ImGuiRenderer = new ImGuiRenderer(Game._);
-            ImGuiRenderer.RebuildFontAtlas();
         }
 
         private void EditorFunctions(GameTime time)
@@ -212,7 +210,6 @@ namespace MonoGameJam3Entry
                     if (ImGui.Selectable(sb.ToString(), i == currentEntityID))
                     {
                         currentEntityID = i;
-                        break;
                     }
                 }
                 ImGui.EndChildFrame();
@@ -288,7 +285,7 @@ namespace MonoGameJam3Entry
             try
             {
                 File.WriteAllText("BACKUP_" + Guid.NewGuid().ToString().ToUpper(), File.ReadAllText(fileName));
-                File.WriteAllText("TEST_" + fileName, File.ReadAllText(fileName));
+                File.WriteAllText(fileName + "_TEST", File.ReadAllText(fileName));
             }
             catch { }
             using (var stream = File.Create(fileName)) {
@@ -331,10 +328,13 @@ namespace MonoGameJam3Entry
         {
             this.levelName = filename;
             physicsWorld = new World(Vector2.Zero);
-            physicsDebugDraw.Dispose();
-            physicsDebugDraw = new DebugView(physicsWorld);
-            physicsDebugDraw.LoadContent(Game._.GraphicsDevice, Game._.Content);
-            em.Clear();
+            if (EditorMode)
+            {
+                physicsDebugDraw.Dispose();
+                physicsDebugDraw = new DebugView(physicsWorld);
+                physicsDebugDraw.LoadContent(Game._.GraphicsDevice, Game._.Content);
+            }
+                em.Clear();
             track.Clear();
             track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
             JsonDocument json = JsonDocument.Parse(File.ReadAllText(filename));
