@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DSastR.Core
 {
-    class SceneManager
+    public class SceneManager
     {
         Game gameBase;
         public Scene Current;

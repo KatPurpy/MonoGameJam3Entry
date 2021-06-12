@@ -1,6 +1,7 @@
 ﻿using DSastR.Core;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoGameJam3Entry;
 using System;
 using System.Collections.Generic;
@@ -20,12 +21,12 @@ namespace MonoGameJam3Entry
     public sealed partial class GameScene : Scene
     {
         Type entityBrush;
-        string fileName = "FILENAME";
+        public string levelName = "FILENAME";
 
         DebugView physicsDebugDraw;
         bool drawColliders;
 
-        bool testMode;
+        public bool Run;
         bool fileIOActive;
         bool fileIOSave;
 
@@ -51,19 +52,23 @@ namespace MonoGameJam3Entry
 
         private void EditorFunctions(GameTime time)
         {
-
+            if (drawColliders)
+            {
+                Matrix proj = camera.Projection, view = camera.View(), world = Matrix.CreateScale(Game.PixelsPerMeter);
+                physicsDebugDraw.RenderDebugData(ref proj, ref view, ref world, depthStencilState: DepthStencilState.None, rasterizerState: RasterizerState.CullNone);
+            }
             ImGui.Checkbox("Draw colliders", ref drawColliders);
 
 
 
-            if (testMode)
+            if (Run)
             {
                 if (fileIOActive == false)
                 {
                     if (ImGui.Button("End Test"))
                     {
-                        Load(fileName);
-                        testMode = false;
+                        Load(levelName);
+                        Run = false;
                     }
                     return;
                 }
@@ -74,7 +79,9 @@ namespace MonoGameJam3Entry
                 {
                     fileIOActive = true;
                     fileIOSave = true;
-                    testMode = true;
+                    Run = true;
+                    PlayerLaps = 0;
+                    LapTimers = new() { new() };
                 }
             }
 
@@ -108,26 +115,26 @@ namespace MonoGameJam3Entry
                 ImGui.Begin("SaveModal",ImGuiWindowFlags.NoTitleBar))
             {
                 
-                var a = FilePicker.GetFilePicker(this, "");
+                var a = FilePicker.GetFilePicker(this, @"..\..\..\LEVELS\");
                 if (a.Draw())
                 {
-                    fileName = (a.SelectedFile);
+                    levelName = (a.SelectedFile);
                     FilePicker.RemoveFilePicker(this);
                 }
-                if (fileName == null) fileName = "FILENAME";
+                if (levelName == null) levelName = "FILENAME";
                 ImGui.PushItemWidth(400);
-                ImGui.InputText("FileName", ref fileName, 512);
+                ImGui.InputText("FileName", ref levelName, 512);
                 ImGui.PopItemWidth();
 
                 if (ImGui.Button(fileIOSave ? "SAVE" : "LOAD"))
                 {
-                    if (fileIOSave) Save(fileName);
-                    else Load(fileName);
+                    if (fileIOSave) Save(levelName);
+                    else Load(levelName);
                     fileIOActive = false;
                 }
                 if (ImGui.Button("Cancel"))
                 {
-                    testMode = false;
+                    Run = false;
                     fileIOActive = false;
                     
                 }
@@ -195,9 +202,9 @@ namespace MonoGameJam3Entry
             StringBuilder sb = new StringBuilder();
             if (ImGui.BeginChildFrame(1, new System.Numerics.Vector2(200, 200)))
             {
-                for (int i = 0; i < manager.SerializableEntities.Count; i++)
+                for (int i = 0; i < manager.InspectableEntities.Count; i++)
                 {
-                    var ent = manager.SerializableEntities[i];
+                    var ent = manager.InspectableEntities[i];
                     sb.Clear();
                     sb.Append(i);
                     sb.Append(' ');
@@ -226,7 +233,7 @@ namespace MonoGameJam3Entry
             {
                 if (ImGui.Button("YES"))
                 {
-                    manager.SerializableEntities[currentEntityID].Destroy();
+                    manager.InspectableEntities[currentEntityID].Destroy();
                     ImGui.CloseCurrentPopup();
                 }
                 if (ImGui.Button("NO"))
@@ -237,11 +244,11 @@ namespace MonoGameJam3Entry
             }
 
 
-            if (-1 < currentEntityID && currentEntityID < manager.SerializableEntities.Count)
+            if (-1 < currentEntityID && currentEntityID < manager.InspectableEntities.Count)
             {
-                var pos = NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(manager.SerializableEntities[currentEntityID].VisualPosition, camera.View()));
+                var pos = NumericToXNA.ConvertXNAToNumeric(Vector2.Transform(manager.InspectableEntities[currentEntityID].VisualPosition, camera.View()));
 
-                currentEntity = manager.SerializableEntities[currentEntityID];
+                currentEntity = manager.InspectableEntities[currentEntityID];
 
                 ImGui.GetBackgroundDrawList().AddCircleFilled(pos, MathF.Abs(MathF.Sin(2 * (float)time.TotalGameTime.TotalSeconds)) * 20 + 5, (uint)(MathHelper.Lerp(0x55FFFF00, 0x55FF00FF, MathF.Abs(MathF.Sin(4 * (float)time.TotalGameTime.TotalSeconds)))));
             }
@@ -276,6 +283,14 @@ namespace MonoGameJam3Entry
 
         private void Save(string fileName)
         {
+            //Create backup
+            
+            try
+            {
+                File.WriteAllText("BACKUP_" + Guid.NewGuid().ToString().ToUpper(), File.ReadAllText(fileName));
+                File.WriteAllText("TEST_" + fileName, File.ReadAllText(fileName));
+            }
+            catch { }
             using (var stream = File.Create(fileName)) {
                 Utf8JsonWriter writer = new Utf8JsonWriter(stream,new JsonWriterOptions()
                 {
@@ -299,9 +314,12 @@ namespace MonoGameJam3Entry
                 writer.WriteEndObject();
                 writer.Flush();
 
+                
                 //string json = UTF8Encoding.UTF8.GetString(stream.ToArray());
                 //Debug.WriteLine(json);
             }
+
+
 
             //test loading
             Load(fileName);
@@ -309,8 +327,9 @@ namespace MonoGameJam3Entry
         
 
 
-        private void Load(string filename)
+        public void Load(string filename)
         {
+            this.levelName = filename;
             physicsWorld = new World(Vector2.Zero);
             physicsDebugDraw.Dispose();
             physicsDebugDraw = new DebugView(physicsWorld);

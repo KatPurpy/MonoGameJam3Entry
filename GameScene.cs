@@ -26,23 +26,32 @@ namespace MonoGameJam3Entry
 
         Bathtub bathtub;
 
+        public static bool EditorMode = true;
+
         public static bool WinFlag;
         public static bool LoseFlag;
 
         public static int PlayerID;
-        public static int Laps = 1;
+        public static int GoalLaps = 1;
+        public static int PlayerLaps;
+        public static List<TimeSpan> LapTimers = new List<TimeSpan>() { new TimeSpan() };
 
         public static void Win()
         {
             WinFlag = true;
         }
 
+        static bool loadedfont = false;
+        static ImFontPtr fontPTR;
+
         static Track_Waypoints wayPoints;
 
         public override void Enter()
         {
             WinFlag = LoseFlag = false;
-            PlayerID = Laps = 0;
+            PlayerID = 0;
+            GoalLaps = 3;
+            LapTimers = new () { new() };
 
             em = new EntityManager(Game._);
             track = new EntityManager(Game._);
@@ -124,7 +133,7 @@ namespace MonoGameJam3Entry
 
         public override void Update(GameTime gameTime)
         {
-            if (testMode && !fileIOActive)
+            if (Run && !fileIOActive)
             {
                 for (int i = 0; i < em.SerializableEntities.Count; i++) {
                     if(em.SerializableEntities[i] is Bathtub b && b.PlayerControlled) focusedEntity = b;
@@ -153,51 +162,54 @@ namespace MonoGameJam3Entry
             Game._.spriteBatch.End();
 
 
+            if (!loadedfont)
+            {
 
+                fontPTR = ImGui.GetIO().Fonts.AddFontFromFileTTF("FONT/ComicNeue-Bold.ttf", 18, null, ImGui.GetIO().Fonts.GetGlyphRangesDefault());
+
+                ImGuiRenderer.RebuildFontAtlas();
+
+                loadedfont = true;
+            }
             ImGuiRenderer.BeforeLayout(time);
+            ImGui.PushFont(fontPTR);
+            ImGuiUtils.SetStyle();
 
-            if(WinFlag || LoseFlag)
-            {
-                int windWidth = 200;
-                int windHeight = 150;
+            ResultScreen();
 
-                ImGui.SetNextWindowPos(new System.Numerics.Vector2(Game._.gdm.PreferredBackBufferWidth/2-windWidth/2, Game._.gdm.PreferredBackBufferHeight/2-windHeight/2), ImGuiCond.FirstUseEver);
-                ImGui.SetNextWindowSize(new System.Numerics.Vector2(windWidth, windHeight), ImGuiCond.FirstUseEver);
-                ImGui.SetNextWindowFocus();
 
-                ImGui.GetStyle().WindowTitleAlign = System.Numerics.Vector2.One/2;
-                ImGui.Begin("Well done!", ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
-                
-                ///ImGui.LabelText("", "=====TIME=====");
 
-                for (int i = 0; i < 4; i++)
-                {
-                    var b = em.SerializableEntities[i] as Bathtub;
-                    if (b.PlayerControlled)
-                    {
-                        ImGui.Text("Time: ");
-                        ImGui.SameLine();
-                        ImGui.Text(b.time.ToString(@"mm\:ss\.ff"));
-                    }
-                }
-
-                ImGui.End();
-            }
-
-            if (drawColliders)
-            {
-                Matrix proj = camera.Projection, view = camera.View(), world = Matrix.CreateScale(Game.PixelsPerMeter);
-                physicsDebugDraw.RenderDebugData(ref proj, ref view, ref world,depthStencilState: DepthStencilState.None,rasterizerState: RasterizerState.CullNone);
-            }
-            ImGui.GetStyle().WindowRounding = 0.0f;// <- Set this on init or use ImGui::PushStyleVar()
-            ImGui.GetStyle().ChildRounding = 0.0f;
-            ImGui.GetStyle().FrameRounding = 0.0f;
-            ImGui.GetStyle().GrabRounding = 0.0f;
-            ImGui.GetStyle().PopupRounding = 0.0f;
-            ImGui.GetStyle().ScrollbarRounding = 0.0f;
             EditorFunctions(time);
 
-            ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(),ImGui.GetFontSize() * 2,System.Numerics.Vector2.Zero ,0xFF00FF00, "AAAAAAAAAAAAAAAAAA");
+            ImGui.GetBackgroundDrawList().AddText(fontPTR, ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280 - 200), 0xFF00FF00,
+                string.Format("LAPS: {0}/{1}", PlayerLaps, GoalLaps));
+
+            for (int i = LapTimers.Count; i-- > 0;)
+            {
+                Color color;
+                if (i == LapTimers.Count - 1)
+                {
+                    if (PlayerLaps < LapTimers.Count && LapTimers.Count > 1)
+                    {
+                        color = LapTimers[PlayerLaps].Ticks < LapTimers[PlayerLaps - 1].Ticks ? Color.Yellow : Color.Red;
+                    }
+                    else
+                    {
+                        color = Color.White;
+                    }
+                }
+                else
+                {
+                    color = Color.White;
+                }
+
+                //var color = LapTimers.Count > 1 && i != LapTimers.Count ? (LapTimers[i].Ticks > LapTimers[i - 1].Ticks ?
+                //    Color.Yellow.PackedValue :
+                //   Color.Red.PackedValue) : Color.White.PackedValue; 
+                ImGui.GetBackgroundDrawList().AddText(fontPTR, ImGui.GetFontSize() * 2, (LapTimers.Count - i + 0.5f) * System.Numerics.Vector2.UnitY * ImGui.GetFontSize() * 2 + System.Numerics.Vector2.UnitX * (1280 - 200),
+                    color.PackedValue,
+                    LapTimers[i].ToString(@"mm\:ss\.ff"));
+            }
             ImGui.Begin("Entity Properties");
             try
             {
@@ -212,6 +224,57 @@ namespace MonoGameJam3Entry
             ImGuiRenderer.AfterLayout();
 
 
+        }
+
+        private void ResultScreen()
+        {
+            if (WinFlag || LoseFlag)
+            {
+                if (WinFlag)
+                {
+                    ImGuiUtils.BeginFixedWindow("Well done!", 200, 190);
+
+                    ImGui.LabelText("", "     =====TIME=====");
+                    for (int i = 0; i < LapTimers.Count; i++)
+                    {
+                        ImGui.Text((i + 1).ToString() + ". ");
+                        ImGui.SameLine();
+                        ImGui.Text(LapTimers[i].ToString(@"mm\:ss\.ff"));
+                    }
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var b = em.SerializableEntities[i] as Bathtub;
+                        if (b.PlayerControlled)
+                        {
+                            ImGui.Text("Total time: ");
+                            ImGui.SameLine();
+                            ImGui.Text(b.time.ToString(@"mm\:ss\.ff"));
+                        }
+                    }
+
+                    ImGui.Button("Level select");
+                    ImGui.SameLine(110);
+                    ImGui.Button("Continue");
+
+                    ImGui.End();
+                }
+                else if (LoseFlag)
+                {
+                    ImGuiUtils.BeginFixedWindow("You are a loser!", 180, 190 - 100);
+                    ImGui.Text("Try again?");
+                    if (ImGui.Button("YES"))
+                    {
+                        var scene = new GameScene();
+                        scene.Load(levelName);
+                        scene.Run = true;
+                        Game._.SceneManager.SwitchScene(scene);
+                    }
+                    ImGui.SameLine(90 + 53);
+                    ImGui.Button("No");
+                    ImGui.End();
+                }
+
+            }
         }
 
         private static void DrawBackground(float half)

@@ -48,6 +48,7 @@ namespace MonoGameJam3Entry
         public Track_Waypoints AI_Waypoints;
         int AI_WaypointID;
         Vector2 AI_TargetPosition;
+        float AI_TurnThreshold;
 
         public float Rotation;
         public float Speed = 10;
@@ -56,11 +57,12 @@ namespace MonoGameJam3Entry
 
         int Laps = 0;
         public TimeSpan time;
-
+       
 
         World world;
         public Body physicsBody;
         int frame = 0;
+        
         public Bathtub(World world)
         {
             this.world = world;
@@ -87,7 +89,7 @@ namespace MonoGameJam3Entry
                 var stat = Keyboard.GetState();
                 Up = stat.IsKeyDown(Keys.Up);
                 Down = stat.IsKeyDown(Keys.Down);
-                if (frame++ % 2 == 0)
+                if (frame % 2 == 0)
                 {
                     
                     Left = stat.IsKeyDown(Keys.Left);
@@ -103,8 +105,14 @@ namespace MonoGameJam3Entry
                     AI_WaypointID++;
                     AI_WaypointID = AI_WaypointID % (AI_Waypoints.Positions.Count);
                     LapCheck();
+                    
                 }
-
+                GameScene.PlayerLaps = Laps;
+                try
+                {
+                    GameScene.LapTimers[Laps] = GameScene.LapTimers[Laps].Add(time.ElapsedGameTime);
+                }
+                catch { }
                 //Console.WriteLine(physicsBody.LinearVelocity);
                 //Console.WriteLine(physicsBody.Position);
                 //physicsBody.Rotation = -rads + MathHelper.ToRadians(90);
@@ -117,12 +125,13 @@ namespace MonoGameJam3Entry
                 Vector2 dir = new Vector2(MathF.Cos(angle),MathF.Sin(angle));
                 Vector2 dirToTarget = AI_TargetPosition * Game.PixelsPerMeter - VisualPosition;
                 
-                if(dirToTarget.Length() < Track_Waypoints.aiTriggerRadius * Game.PixelsPerMeter)
+                if(dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)
                 {
                     AI_WaypointID++;
                     AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID % (AI_Waypoints.Positions.Count)];
                     LapCheck();
-                    AI_TargetPosition += 0.5f* Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble() - 0.5f, (float)r.NextDouble() - 0.5f)) * 2;
+                    AI_TurnThreshold = (float)r.NextDouble() * 3;
+                    //AI_TargetPosition += 0.5f* Track_Waypoints.aiTriggerRadius * (new Vector2((float)r.NextDouble() - 0.5f, (float)r.NextDouble() - 0.5f)) * 2;
                 }
 
                 dirToTarget.Normalize();
@@ -144,17 +153,17 @@ namespace MonoGameJam3Entry
             if (AI_WaypointID % (AI_Waypoints.Positions.Count) == 0)
             {
                 Laps++;
-                if(Laps == GameScene.Laps)
+
+
+                if(Laps == GameScene.GoalLaps)
                 {
-                    if(RacerID == GameScene.PlayerID)
-                    {
-                        GameScene.WinFlag = true;
-                    }
-                    else
-                    {
-                        Console.WriteLine("LOSE!");
-                        Console.ReadLine();
-                    }
+                    GameScene.LoseFlag = !(GameScene.WinFlag = RacerID == GameScene.PlayerID);
+                    return;
+                }
+
+                if (PlayerControlled)
+                {
+                    GameScene.LapTimers.Add(new());
                 }
             }
         }

@@ -36,7 +36,7 @@ namespace MonoGameJam3Entry
 
 
 
-        SceneManager SceneManager;       
+        public SceneManager SceneManager;       
 
         protected override void Initialize()
         {
