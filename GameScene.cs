@@ -33,6 +33,10 @@ namespace MonoGameJam3Entry
         public static int PlayerLaps;
         public static List<TimeSpan> LapTimers = new List<TimeSpan>() { new TimeSpan() };
 
+        public static int PlayerGoals = 0;
+        public static int EnemyGoals = 0;
+        public const int MaxGoals = 5;
+
         TimeSpan timeSinceLoad = new();
 
         public static void Win()
@@ -43,7 +47,7 @@ namespace MonoGameJam3Entry
 
         public static void Lose()
         {
-            LoseFlag = false;
+            LoseFlag = true;
         }
 
         bool started;
@@ -54,7 +58,7 @@ namespace MonoGameJam3Entry
         public override void Enter()
         {
             WinFlag = LoseFlag = false;
-            PlayerID = 0;
+            EnemyGoals = PlayerGoals = PlayerID = 0;
             LapTimers = new () { new() };
 
             em = new EntityManager(Game._);
@@ -63,7 +67,8 @@ namespace MonoGameJam3Entry
             camera.Init();
             camera.Scale = Vector2.One * 0.5f;
             camera.VirtualRes = (800, 480);
-            track.AddEntity(wayPoints = new Track_Waypoints());
+           // if(levelName != "LEVELS/SPACE")
+           // track.AddEntity(wayPoints = new Track_Waypoints());
 
             started = EditorMode == true;
             if (EditorMode) InitEditor();
@@ -80,10 +85,7 @@ namespace MonoGameJam3Entry
         Dictionary<Type, Func<Game, World, EntityManager, Entity>> spawn_entity = new (){
             {
                 typeof(Bathtub),
-                (game,world,_) =>
-                {
-                    
-                    return new Bathtub(world)
+                (game,world,_) => new Bathtub(world)
                     {
                         
                         CarTexture = Assets.Sprites.basecart,
@@ -91,9 +93,16 @@ namespace MonoGameJam3Entry
                         CharacterTexture = Assets.Sprites.chr_monkey,
                         AI_Waypoints = GameScene.wayPoints,
                         camera = camera
-                    };
-                }
+                    }
             },
+            {
+                typeof(Entity_FootballGoal),
+                (game, world,_) => new Entity_FootballGoal(world)
+            },
+            {
+                typeof(Entity_FootballBall),
+                (game, world, entman) => new Entity_FootballBall(world,entman)
+            }
             
             
         };
@@ -133,7 +142,7 @@ namespace MonoGameJam3Entry
             {
                 typeof(Track_FlowerField),
                 (_,_,_)=>new Track_FlowerField()
-            }
+            },
         };
 
         public override void Update(GameTime gameTime)
@@ -153,6 +162,7 @@ namespace MonoGameJam3Entry
         int frame = 0;
         public override void Draw(GameTime time)
         {
+            frame++;
             DrawBackground(0);
             DrawBackground(0.5f);
 
@@ -171,8 +181,10 @@ namespace MonoGameJam3Entry
             {
                 //i don't flopping what magic dust does this work on
                 //but i don't have time to figure it out
+                
                 timeSinceLoad += time.ElapsedGameTime;
                 var _time = MathF.Abs((int)timeSinceLoad.TotalSeconds - 1 - 3);
+                camera.XY = em.SerializableEntities.Find(e => (e is Bathtub b) && b.PlayerControlled).VisualPosition;
                 switch(_time)
                 {
                     case 0:
@@ -192,37 +204,48 @@ namespace MonoGameJam3Entry
                     started = true;
                 }
             }
-           
 
-            ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280 - 200), 0xFF00FF00,
-                string.Format("LAPS: {0}/{1}", PlayerLaps, GoalLaps));
-
-            if(frame++%2==0 && WrongWay)
-            ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280/2-200), Color.Red.PackedValue,
-                string.Format("WRONG WAY", PlayerLaps, GoalLaps));
-            
-            for (int i = LapTimers.Count; i-- > 0;)
+            if (wayPoints != null && !wayPoints.Dead && wayPoints.Positions.Count > 1)
             {
-                Color color;
-                if (i == LapTimers.Count - 1)
+                ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280 - 200), 0xFF00FF00,
+                    string.Format("LAPS: {0}/{1}", PlayerLaps, GoalLaps));
+
+                if (frame % 2 == 0 && WrongWay)
+                    ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, System.Numerics.Vector2.UnitX * (1280 / 2 - 200), Color.Red.PackedValue,
+                        string.Format("WRONG WAY", PlayerLaps, GoalLaps));
+
+                for (int i = LapTimers.Count; i-- > 0;)
                 {
-                    if (PlayerLaps < LapTimers.Count && LapTimers.Count > 1)
+                    Color color;
+                    if (i == LapTimers.Count - 1)
                     {
-                        color = LapTimers[PlayerLaps].Ticks < LapTimers[PlayerLaps - 1].Ticks ? Color.Yellow : Color.Red;
+                        if (PlayerLaps < LapTimers.Count && LapTimers.Count > 1)
+                        {
+                            color = LapTimers[PlayerLaps].Ticks < LapTimers[PlayerLaps - 1].Ticks ? Color.Yellow : Color.Red;
+                        }
+                        else
+                        {
+                            color = Color.White;
+                        }
                     }
                     else
                     {
                         color = Color.White;
                     }
-                }
-                else
-                {
-                    color = Color.White;
-                }
 
-                ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 2, (LapTimers.Count - i + 0.5f) * System.Numerics.Vector2.UnitY * ImGui.GetFontSize() * 2 + System.Numerics.Vector2.UnitX * (1280 - 200),
-                    color.PackedValue,
-                    LapTimers[i].ToString(@"mm\:ss\.ff"));
+                    ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 2, (LapTimers.Count - i + 0.5f) * System.Numerics.Vector2.UnitY * ImGui.GetFontSize() * 2 + System.Numerics.Vector2.UnitX * (1280 - 200),
+                        color.PackedValue,
+                        LapTimers[i].ToString(@"mm\:ss\.ff"));
+                }
+            }
+            else if(em.Entities.Find(e=> e.GetType() == typeof(Entity_FootballBall)) != null)
+            {
+                ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, new(640 - 3*30 / 2, 0), Color.White.PackedValue, string.Format("{0:00}:{1:00}",PlayerGoals,EnemyGoals));
+
+            }
+            else if(wayPoints == null )
+            {
+                ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, new(640 - 3 * 30 / 2, 0), Color.Red.PackedValue, "KILL THEM ALL");
             }
             if (EditorMode)
             {
@@ -248,23 +271,26 @@ namespace MonoGameJam3Entry
             {
                 if (WinFlag)
                 {
+                    
                     ImGuiUtils.BeginFixedWindow("Well done!", 200, 190);
-
-                    ImGui.LabelText("", "     =====TIME=====");
-                    for (int i = 0; i < LapTimers.Count; i++)
+                    if (wayPoints.Positions.Count > 1)
                     {
-                        ImGui.Text((i + 1).ToString() + ". ");
-                        ImGui.SameLine();
-                        ImGui.Text(LapTimers[i].ToString(@"mm\:ss\.ff"));
+                        ImGui.LabelText("", "     =====TIME=====");
+                        for (int i = 0; i < LapTimers.Count; i++)
+                        {
+                            ImGui.Text((i + 1).ToString() + ". ");
+                            ImGui.SameLine();
+                            ImGui.Text(LapTimers[i].ToString(@"mm\:ss\.ff"));
+                        }
                     }
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 0; i < em.SerializableEntities.Count; i++)
                     {
-                        var b = em.SerializableEntities[i] as Bathtub;
-                        if (b.PlayerControlled)
+                        if (em.SerializableEntities[i] is Bathtub b && b.PlayerControlled)
                         {
                             ImGui.Text("Total time: ");
                             ImGui.SameLine();
                             ImGui.Text(b.time.ToString(@"mm\:ss\.ff"));
+                            break;
                         }
                     }
 
@@ -272,7 +298,7 @@ namespace MonoGameJam3Entry
                     {
                         Game._.SceneManager.SwitchScene(new MainMenuScene()
                         {
-                            screen = MainMenuScene.Screen.Race_SelectTrack
+                            
                         });
                     }
                     ImGui.SameLine(110);
@@ -280,7 +306,6 @@ namespace MonoGameJam3Entry
                     {
                         Game._.SceneManager.SwitchScene(new MainMenuScene()
                         {
-                            screen = MainMenuScene.Screen.Race_SelectTrack
                         });
                     }
 

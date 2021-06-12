@@ -15,6 +15,16 @@ namespace MonoGameJam3Entry
             public static Texture2D RACE2;
             public static Texture2D RACE3;
 
+            public static Texture2D[] CUTSCENE_RACE_INTRO;
+            public static Texture2D[] CUTSCENE_RACE_ENDING;
+
+            public static Texture2D[] CUTSCENE_FOOTBALL_INTRO;
+            public static Texture2D[] CUTSCENE_FOOTBALL_ENDING;
+
+            public static Texture2D circle;
+
+            public static Texture2D[] CUTSCENE_SPACE_ENDING;
+
             public static Texture2D basecart;
             public static Texture2D chr_monkey;
             public static Texture2D checkerboard;
@@ -56,6 +66,7 @@ namespace MonoGameJam3Entry
 
         public static void Load(Game game)
         {
+            Sprites.circle = Game.LoadTexture("IMAGES/circle.bmp");
             Sprites.jungle = new MappedSpriteSheet(game, "jungle.map");
             Sprites.basecart = Game.LoadTexture("IMAGES/basecart.bmp");
             Sprites.chr_monkey = Game.LoadTexture("IMAGES/chr_monkey.bmp");
@@ -64,6 +75,42 @@ namespace MonoGameJam3Entry
             Sprites.RACE1 = Game.LoadTexture("IMAGES/RACE1.bmp");
             Sprites.RACE2 = Game.LoadTexture("IMAGES/RACE2.bmp");
             Sprites.RACE3 = Game.LoadTexture("IMAGES/RACE3.bmp");
+
+            Sprites.CUTSCENE_RACE_INTRO = new[]
+            {
+                Game.LoadTexture("IMAGES/RACE_INTRO_0.bmp"),
+                Game.LoadTexture("IMAGES/RACE_INTRO_1.bmp"),
+                Game.LoadTexture("IMAGES/RACE_INTRO_2.bmp"),
+            };
+
+
+            Sprites.CUTSCENE_RACE_ENDING = new[]
+            {
+                Game.LoadTexture("IMAGES/RACE_ENDING_0.bmp"),
+                Game.LoadTexture("IMAGES/RACE_ENDING_1.bmp"),
+                Game.LoadTexture("IMAGES/RACE_ENDING_2.bmp"),
+            };
+
+            Sprites.CUTSCENE_FOOTBALL_INTRO = new[]
+            {
+                Game.LoadTexture("IMAGES/FOOTBALL_INTRO_0.bmp"),
+                Game.LoadTexture("IMAGES/FOOTBALL_INTRO_1.bmp"),
+            };
+
+            Sprites.CUTSCENE_FOOTBALL_ENDING = new[]
+            {
+                Game.LoadTexture("IMAGES/FOOTBALL_ENDING_0.bmp"),
+                Game.LoadTexture("IMAGES/FOOTBALL_ENDING_1.bmp")
+            };
+
+            Sprites.CUTSCENE_SPACE_ENDING = new[]
+            {
+                Game.LoadTexture("IMAGES/SPACE_ENDING_0.bmp"),
+                Game.LoadTexture("IMAGES/SPACE_ENDING_1.bmp"),
+                Game.LoadTexture("IMAGES/SPACE_ENDING_2.bmp"),
+            };
+
+            
 
             Sprites.decorMap = new()
             {

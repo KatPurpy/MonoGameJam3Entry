@@ -47,7 +47,7 @@ namespace MonoGameJam3Entry
 
         public Track_Waypoints AI_Waypoints;
         int AI_WaypointID;
-        Vector2 AI_TargetPosition;
+        public Vector2 AI_TargetPosition;
         float AI_TurnThreshold;
 
         public float Rotation;
@@ -80,10 +80,13 @@ namespace MonoGameJam3Entry
 
         public override void Start()
         {
-            var pos = AI_Waypoints.Positions[0] * Game.PixelsPerMeter;
-            var dir = pos * Game.PixelsPerMeter - VisualPosition;
-            dir = new(MathF.Round(dir.X), MathF.Round(dir.Y));
-            Rotation = MathHelper.ToDegrees(MathF.Atan2(dir.Y,dir.X))+90;
+            if (AI_Waypoints != null && AI_Waypoints.Positions.Count > 1)
+            {
+                var pos = AI_Waypoints.Positions[0] * Game.PixelsPerMeter;
+                var dir = pos * Game.PixelsPerMeter - VisualPosition;
+                dir = new(MathF.Round(dir.X), MathF.Round(dir.Y));
+                Rotation = MathHelper.ToDegrees(MathF.Atan2(dir.Y, dir.X)) + 90;
+            }
         }
 
         public override void Update(GameTime time)
@@ -92,7 +95,7 @@ namespace MonoGameJam3Entry
 
             if(AI_TargetPosition == Vector2.Zero)
             {
-                AI_TargetPosition = AI_Waypoints.Positions[0];
+                 if(AI_Waypoints != null && AI_Waypoints.Positions.Count > 1) AI_TargetPosition = AI_Waypoints.Positions[0];
             }
 
             float angle = MathHelper.ToRadians(Rotation);
@@ -113,24 +116,28 @@ namespace MonoGameJam3Entry
                 }
                 GameScene.PlayerID = RacerID;
 
-                Vector2 dirToTarget = AI_Waypoints.Positions[AI_WaypointID] * Game.PixelsPerMeter - VisualPosition;
-                AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID];
-                if (dirToTarget.Length() < Track_Waypoints.triggerradius * Game.PixelsPerMeter)
+                if (AI_Waypoints != null && AI_Waypoints.Positions.Count > 1)
                 {
-                    AI_WaypointID++;
-                    AI_WaypointID = AI_WaypointID % (AI_Waypoints.Positions.Count);
-                    LapCheck();
-                    
+
+                    Vector2 dirToTarget = AI_Waypoints.Positions[AI_WaypointID] * Game.PixelsPerMeter - VisualPosition;
+                    AI_TargetPosition = AI_Waypoints.Positions[AI_WaypointID];
+                    if (dirToTarget.Length() < Track_Waypoints.triggerradius * Game.PixelsPerMeter)
+                    {
+                        AI_WaypointID++;
+                        AI_WaypointID = AI_WaypointID % (AI_Waypoints.Positions.Count);
+                        LapCheck();
+
+                    }
+                    GameScene.PlayerLaps = Laps;
+                    try
+                    {
+                        GameScene.LapTimers[Laps] = GameScene.LapTimers[Laps].Add(time.ElapsedGameTime);
+                    }
+                    catch { }
+                    dirToTarget.Normalize();
+                    float a = MathF.Acos(Vector2.Dot(dirToTarget, dir));
+                    Console.WriteLine(MathHelper.ToDegrees(a));
                 }
-                GameScene.PlayerLaps = Laps;
-                try
-                {
-                    GameScene.LapTimers[Laps] = GameScene.LapTimers[Laps].Add(time.ElapsedGameTime);
-                }
-                catch { }
-                dirToTarget.Normalize();
-                float a = MathF.Acos(Vector2.Dot(dirToTarget, dir));
-                Console.WriteLine(MathHelper.ToDegrees(a));
                 //GameScene.WrongWay = a > MathHelper.ToRadians(90);
                 //Console.WriteLine(physicsBody.LinearVelocity);
                 //Console.WriteLine(physicsBody.Position);
@@ -143,7 +150,8 @@ namespace MonoGameJam3Entry
 
                 Vector2 dirToTarget = AI_TargetPosition * Game.PixelsPerMeter - VisualPosition;
                 
-                if(dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)
+                
+                if(AI_Waypoints.Positions.Count > 1 && dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)
                 {
                     AI_WaypointID++;
                     if (AI_RacingMode)
@@ -236,7 +244,7 @@ namespace MonoGameJam3Entry
 
         public override void IMGUI(GameTime time)
         {
-            AI_Waypoints.DrawWayPoints();
+            AI_Waypoints?.DrawWayPoints();
 
             RealPosition = ImGuiUtils.VecField("POSITION",RealPosition);
             ImGui.Checkbox("PLAYER",ref PlayerControlled);
@@ -267,7 +275,11 @@ namespace MonoGameJam3Entry
             Color.Red,
             Color.Yellow,
             Color.Green,
-            Color.Blue
+            Color.Blue,
+            Color.White,
+            Color.Orange,
+            Color.Cyan,
+            Color.Magenta
         };
 
         void DrawBathtub(Vector2 pos, Direction dir, Color color)

@@ -220,7 +220,7 @@ namespace MonoGameJam3Entry
             //ImGui.ListBox("", ref currentEntityID, s.Select(s => s.ToString()).ToArray(), s.Count, 10);
 
 
-            if (focusedEntity?.GetType() != typeof(Track_Waypoints) && ImGui.Button("Delete Entity"))
+            if (ImGui.Button("Delete Entity"))
             {
                 ImGui.OpenPopup("CONFIRM DELETION?");
             }
@@ -295,10 +295,13 @@ namespace MonoGameJam3Entry
                 });
                 writer.WriteStartObject();
 
-                writer.WritePropertyName("waypoints");
-                writer.WriteStartObject();
-                wayPoints.SerializeState(writer);
-                writer.WriteEndObject();
+                if (wayPoints != null)
+                {
+                    writer.WritePropertyName("waypoints");
+                    writer.WriteStartObject();
+                    wayPoints.SerializeState(writer);
+                    writer.WriteEndObject();
+                }
 
                 writer.WriteStartArray("entities");
                 foreach (var entity in em.SerializableEntities) SaveEntity(writer, entity);
@@ -336,11 +339,11 @@ namespace MonoGameJam3Entry
             }
                 em.Clear();
             track.Clear();
-            track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
+            if(!filename.EndsWith("LEVELS/SPACE")) track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
             JsonDocument json = JsonDocument.Parse(File.ReadAllText(filename));
             Type typeByString(string s) => Type.GetType("MonoGameJam3Entry." + s);
 
-            wayPoints.RestoreState(json.RootElement.GetProperty("waypoints"));
+            wayPoints?.RestoreState(json.RootElement.GetProperty("waypoints"));
 
             foreach (var entityState in json.RootElement.GetProperty("entities").EnumerateArray())
             {

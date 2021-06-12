@@ -21,8 +21,7 @@ namespace MonoGameJam3Entry
             PlayedRaceStoryEnding,      //7
             PlayedFootballStoryIntro,   //8
             PlayedFootballStoryEnding,  //9
-            PlayedSpaceStoryIntro,      //10
-            PlayedSpaceStoryEnding;     //11
+            PlayedSpaceStoryEnding;     //10
         public static uint GetPacked()
         {
             uint number = 0;
@@ -37,8 +36,7 @@ namespace MonoGameJam3Entry
             SetFlag(ref number, 7, PlayedRaceStoryEnding);
             SetFlag(ref number, 8, PlayedFootballStoryIntro);
             SetFlag(ref number, 9, PlayedFootballStoryEnding);
-            SetFlag(ref number, 10, PlayedSpaceStoryIntro);
-            SetFlag(ref number, 11, PlayedSpaceStoryEnding);
+            SetFlag(ref number, 10, PlayedSpaceStoryEnding);
             return number;
         } 
 
@@ -96,8 +94,7 @@ namespace MonoGameJam3Entry
                 GetFlagAndSetIt(number, 7, ref PlayedRaceStoryEnding);
                 GetFlagAndSetIt(number, 8, ref PlayedFootballStoryIntro);
                 GetFlagAndSetIt(number, 9, ref PlayedFootballStoryEnding);
-                GetFlagAndSetIt(number, 10, ref PlayedSpaceStoryIntro);
-                GetFlagAndSetIt(number, 11, ref PlayedSpaceStoryEnding);
+                GetFlagAndSetIt(number, 10, ref PlayedSpaceStoryEnding);
             }
         }
     }

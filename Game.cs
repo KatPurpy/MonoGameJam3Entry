@@ -39,15 +39,14 @@ namespace MonoGameJam3Entry
 
         public SceneManager SceneManager;
 
-        static bool loadedfont = false;
         static ImFontPtr fontPTR;
-        Timer autoSave = new Timer();
+
 
         public static Action DoAfterWin;
 
         public static void Win()
         {
-            DoAfterWin();
+            DoAfterWin?.Invoke();
             PlayerProfile.Save();
         }
 
@@ -65,10 +64,10 @@ namespace MonoGameJam3Entry
             ImGuiRenderer.RebuildFontAtlas();
 
 
-            
+            SceneManager.SwitchScene(new GameScene());
 
-            PlayerProfile.Load();
-            SceneManager.SwitchScene(new MainMenuScene());
+            //PlayerProfile.Load();
+            //SceneManager.SwitchScene(new MainMenuScene());
         }
 
         protected override void LoadContent()
@@ -101,7 +100,6 @@ namespace MonoGameJam3Entry
 
                     Game.ImGuiRenderer.RebuildFontAtlas();
 
-                    loadedfont = true;
                 }
             }
             ImGui.PushFont(fontPTR);

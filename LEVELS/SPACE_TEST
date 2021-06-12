@@ -1,0 +1,17 @@
+{
+  "waypoints": {
+    "Positions": []
+  },
+  "entities": [
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": 0,
+        "Y": 0
+      },
+      "RacerID": 0,
+      "PlayerControlled": true
+    }
+  ],
+  "track": []
+}

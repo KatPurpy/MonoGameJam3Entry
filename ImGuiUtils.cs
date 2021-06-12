@@ -105,13 +105,22 @@ namespace MonoGameJam3Entry
             style.AntiAliasedFill = style.AntiAliasedLines = style.AntiAliasedLinesUseTex = false;
         }
 
-        public static unsafe T VecField<T>(string label, T vec) where T:unmanaged,IEquatable<T>
+        public static unsafe T VecField<T>(string label, T vec, ref bool changed) where T:unmanaged,IEquatable<T>
         {
-            if(sizeof(T) == Unsafe.SizeOf<Vector2>()) ImGui.DragFloat2(label, ref Unsafe.As<T, System.Numerics.Vector2>(ref vec));
+            if(sizeof(T) == Unsafe.SizeOf<Vector2>()) changed = ImGui.DragFloat2(label, ref Unsafe.As<T, System.Numerics.Vector2>(ref vec));
+            if (sizeof(T) == Unsafe.SizeOf<Vector3>()) changed = ImGui.DragFloat3(label, ref Unsafe.As<T, System.Numerics.Vector3>(ref vec));
+            if (sizeof(T) == Unsafe.SizeOf<Vector4>()) changed = ImGui.DragFloat4(label, ref Unsafe.As<T, System.Numerics.Vector4>(ref vec));
+            return vec;
+        }
+
+        public static unsafe T VecField<T>(string label, T vec) where T : unmanaged, IEquatable<T>
+        {
+            if (sizeof(T) == Unsafe.SizeOf<Vector2>()) ImGui.DragFloat2(label, ref Unsafe.As<T, System.Numerics.Vector2>(ref vec));
             if (sizeof(T) == Unsafe.SizeOf<Vector3>()) ImGui.DragFloat3(label, ref Unsafe.As<T, System.Numerics.Vector3>(ref vec));
             if (sizeof(T) == Unsafe.SizeOf<Vector4>()) ImGui.DragFloat4(label, ref Unsafe.As<T, System.Numerics.Vector4>(ref vec));
             return vec;
         }
+
         static int frame;
         public static void PolylineEditor(List<Vector2> Positions, Camera camera, ref int dragging, ref int selected, Action Rebuild, Vector2 newPos)
         {

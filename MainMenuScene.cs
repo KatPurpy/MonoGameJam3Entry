@@ -1,6 +1,7 @@
 ﻿using DSastR.Core;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +15,9 @@ namespace MonoGameJam3Entry
     {
 
         IntPtr[] levelThumbnail = new IntPtr[0];
+        int cutscenePage = 0;
+
+        IntPtr[] currentCutScene = new IntPtr[0];
         IntPtr levelBlocked;
 
         public override void Enter()
@@ -22,7 +26,7 @@ namespace MonoGameJam3Entry
             Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE2),
             Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE3)};
             levelBlocked = Game.ImGuiRenderer.BindTexture(Assets.Sprites.@lock);
-
+            
         }
 
         public override void Leave()
@@ -61,7 +65,6 @@ namespace MonoGameJam3Entry
             RaceStoryEnding,
             FootballStoryIntro,
             FootballStoryEnding,
-            SpaceStoryIntro,
             SpaceStoryEnding
         }
 
@@ -72,7 +75,39 @@ namespace MonoGameJam3Entry
             return ImGui.Button(text);
         }
 
-        public Screen screen;
+        public static Screen screen;
+        public static Screen prevScreen;
+        void PrepareCutscene(CutsceneType cutscene)
+        {
+            prevScreen = screen == Screen.Cutscene ? Screen.MainMenu : screen ;
+            screen = Screen.Cutscene;
+            cutscenePage = 0;
+
+            Texture2D[] frames;
+            switch (cutscene)
+            {
+                case CutsceneType.RaceStoryIntro:
+                    frames = Assets.Sprites.CUTSCENE_RACE_INTRO;
+                    break;
+                case CutsceneType.RaceStoryEnding:
+                    frames = Assets.Sprites.CUTSCENE_RACE_ENDING;
+                    break;
+                case CutsceneType.FootballStoryIntro:
+                    frames = Assets.Sprites.CUTSCENE_FOOTBALL_INTRO;
+                    break;
+                case CutsceneType.FootballStoryEnding:
+                    frames = Assets.Sprites.CUTSCENE_FOOTBALL_ENDING;
+                    break;
+                case CutsceneType.SpaceStoryEnding:
+                    frames = Assets.Sprites.CUTSCENE_SPACE_ENDING;
+                    break;
+                default: throw new Exception("wtf?");
+            }
+
+            currentCutScene = frames.Select(t => Game.ImGuiRenderer.BindTexture(t)).ToArray();
+
+        }
+
         public override void Draw(GameTime gameTime)
         {
             //int a = 0;
@@ -103,11 +138,47 @@ namespace MonoGameJam3Entry
             //}return;
 
 
+           // ImGui.SetWindowFontScale(1);
 
-            
-            
+
 
             switch (screen) {
+                case Screen.Cutscene:
+
+                    ImGui.GetBackgroundDrawList().AddImage(
+                        currentCutScene[cutscenePage],
+                        new(0, 0),
+                        ImGui.GetIO().DisplaySize
+                        );
+
+                    ImGui.SetNextWindowPos(new(640-142/2,720 - 50),ImGuiCond.Always);
+                    //ImGui.SetNextWindowSize()
+                    
+                    ImGui.Begin("bookthing", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings);
+                    ImGui.SetWindowFontScale(1.5f);
+                    if (ImGui.Button("<--"))
+                    {
+                        if (--cutscenePage < 0)
+                        {
+                            cutscenePage = 0;
+                            break;
+                        }
+                    }
+                    ImGui.SameLine();
+                    ImGui.Text(string.Format("{0}/{1}",cutscenePage+1,currentCutScene.Length));
+                    ImGui.SameLine();
+                    if (ImGui.Button("-->"))
+                    {
+                        if (++cutscenePage == currentCutScene.Length)
+                        {
+                            screen = prevScreen;
+                            break;
+                        }
+                    }
+                    ImGui.End();
+
+                    break;
+
                 case Screen.MainMenu: 
                     ImGuiUtils.BeginFixedWindow("Main Menu", 180, 158);
                     if (butt("Play")) screen = Screen.SelectMode;
@@ -135,9 +206,45 @@ namespace MonoGameJam3Entry
                 case Screen.SelectMode:
                     ImGuiUtils.BeginFixedWindow("Select mode", 180, 158);
                     if(butt("Race")) screen = Screen.Race_SelectTrack;
-                    butt("Wheelball");
-                    butt("Space brawl");
+                    if(PlayerProfile.FootballUnlock && butt("Wheelball"))
+                    {
+                        screen = Screen.Football;
+                    }
+                    if(PlayerProfile.SpaceUnlock && butt("Space brawl"))
+                    {
+                        screen = Screen.SpaceArena;
+                    }
                     if(butt("<--")) screen = Screen.MainMenu;
+                    break;
+                case Screen.Football:
+                    ImGuiUtils.BeginFixedWindow("Wheelball",370,158);
+                    ImGui.Text("Rules am s1mple: the put ball the 0n enemy g0a1.\n5 goals.\nGood luck.");
+                    if (ImGui.Button("<--")) screen = Screen.SelectMode;
+                    ImGui.SameLine(300);
+                    if (ImGui.Button("Proceed."))
+                    {
+                        Game.DoAfterWin = () =>
+                        {
+                            PlayerProfile.SpaceUnlock = true;
+                        };
+                        GameScene.StartLevel("LEVELS/FOOTBALL");
+                    }
+                    ImGui.End();
+                    break;
+                case Screen.SpaceArena:
+                    ImGuiUtils.BeginFixedWindow("TH0SE AL1ENS11", 410, 158);
+                    ImGui.Text("0hh the notn't! al1ens in need 0f to kill us.\nSh0wn them tHat per50n the 1s b0ss around th1s plAcE!\nTask: Survive and push away others. There can be only one.");
+                    if (ImGui.Button("<--")) screen = Screen.SelectMode;
+                    ImGui.SameLine(300);
+                    if (ImGui.Button("Proceed."))
+                    {
+                        Game.DoAfterWin = () =>
+                        {
+                            PlayerProfile.SpaceComplete = true;
+                        };
+                        GameScene.StartLevel("LEVELS/SPACE");
+                    }
+                    ImGui.End();
                     break;
                 case Screen.Race_SelectTrack:
                     ImGuiUtils.BeginFixedWindow("Select track",600-5,180+15);
@@ -184,31 +291,37 @@ namespace MonoGameJam3Entry
             if (screen == Screen.Race_SelectTrack && !PlayerProfile.PlayedRaceStoryIntro)
             {
                 Debug.WriteLine("MUST PLAY RACE INTRO CUTSCENE");
+                PrepareCutscene(CutsceneType.RaceStoryIntro);
+                PlayerProfile.PlayedRaceStoryIntro = true;
+                PlayerProfile.Save();
             }
 
-            if(screen == Screen.Race_SelectTrack && PlayerProfile.FootballUnlock && !PlayerProfile.PlayedFootballStoryEnding)
+            if (screen == Screen.Race_SelectTrack && !PlayerProfile.PlayedRaceStoryEnding)
             {
-                Debug.WriteLine("MUST PLAY RACE ENDING CUTSCENE");
+                Debug.WriteLine("MUST PLAY RACE INTRO CUTSCENE");
+                PrepareCutscene(CutsceneType.RaceStoryEnding);
+                PlayerProfile.PlayedRaceStoryEnding = true; PlayerProfile.Save();
             }
 
             if (screen == Screen.Football && !PlayerProfile.PlayedFootballStoryIntro)
             {
                 Debug.WriteLine("MUST PLAY FOOTBALL INTRO CUTSCENE");
+                PrepareCutscene(CutsceneType.FootballStoryIntro);
+                PlayerProfile.PlayedFootballStoryIntro = true; PlayerProfile.Save();
             }
 
-            if (screen == Screen.Football && PlayerProfile.SpaceUnlock && !PlayerProfile.PlayedFootballStoryEnding)
+            if (screen == Screen.SpaceArena && PlayerProfile.SpaceUnlock && !PlayerProfile.PlayedFootballStoryEnding)
             {
                 Debug.WriteLine("MUST PLAY FOOTBALL OUTRO CUTSCENE");
+                PrepareCutscene(CutsceneType.FootballStoryEnding);
+                PlayerProfile.PlayedFootballStoryEnding = true; PlayerProfile.Save();
             }
 
-            if(screen == Screen.SpaceArena && !PlayerProfile.PlayedRaceStoryIntro)
-            {
-                Debug.WriteLine("MUST PLAY SPACE ARENA INTRO CUTSCENE");
-            }
-
-            if(screen == Screen.SpaceArena && !PlayerProfile.SpaceComplete)
+            if(screen == Screen.SpaceArena && !PlayerProfile.PlayedSpaceStoryEnding && PlayerProfile.SpaceComplete)
             {
                 Debug.WriteLine("ENDING CUTSCENE MUST BE PLAYED");
+                PrepareCutscene(CutsceneType.SpaceStoryEnding);
+                PlayerProfile.PlayedSpaceStoryEnding = true; PlayerProfile.Save();
             }
 
             ImGui.GetBackgroundDrawList().AddText(new(0,720-18),Color.Black.PackedValue, "(c) Kat Purpy, 2021");
