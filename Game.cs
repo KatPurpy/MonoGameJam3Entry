@@ -62,7 +62,7 @@ namespace MonoGameJam3Entry
             IsMouseVisible = true;
             base.Initialize();
             spriteBatch = new SpriteBatch(gdm.GraphicsDevice);
-
+            Window.Title = "SUPER MONKEY BATHTUB RACING";
             Assets.Load(this);
             ImGuiRenderer = new ImGuiRenderer(this);
             ImGuiRenderer.RebuildFontAtlas();
@@ -103,7 +103,7 @@ namespace MonoGameJam3Entry
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             Game.ImGuiRenderer.BeforeLayout(gameTime);
             unsafe

@@ -281,7 +281,7 @@ namespace MonoGameJam3Entry
 
                             ent.AI_TargetPosition = targPos + new Vector2((float)random.NextDouble() * 20);
 
-                            if (ent.RealPosition.Length() > 60)
+                            if (ent.RealPosition.Length() > 65)
                             {
                                 ent.AI_TargetPosition = Vector2.Zero;
                             }

@@ -21,7 +21,7 @@ namespace MonoGameJam3Entry
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(Game._.gdm.PreferredBackBufferWidth / 2 - windWidth / 2, Game._.gdm.PreferredBackBufferHeight / 2 - windHeight / 2), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(windWidth, windHeight), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowFocus();
+         //  ImGui.SetNextWindowFocus();
             ImGui.Begin(title, ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
         }
 

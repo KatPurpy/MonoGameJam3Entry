@@ -55,15 +55,7 @@
       "RacerID": 3,
       "PlayerControlled": false
     },
-    {
-      "type": "Bathtub",
-      "VisualPosition": {
-        "X": 1061.02,
-        "Y": 32.039787
-      },
-      "RacerID": 4,
-      "PlayerControlled": false
-    },
+
     {
       "type": "Bathtub",
       "VisualPosition": {

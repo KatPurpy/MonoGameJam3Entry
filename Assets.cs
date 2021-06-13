@@ -11,6 +11,10 @@ namespace MonoGameJam3Entry
     public static class Assets
     {
         public static class Sprites {
+            public static Texture2D LOGO;
+            public static Texture2D TITLE;
+            public static Texture2D MENUBG;
+
             public static Texture2D RACE1;
             public static Texture2D RACE2;
             public static Texture2D RACE3;
@@ -75,6 +79,10 @@ namespace MonoGameJam3Entry
 
         public static void Load(Game game)
         {
+            Sprites.LOGO = Game.LoadTexture("IMAGES/logo.bmp");
+            Sprites.TITLE = Game.LoadTexture("IMAGES/title.bmp");
+            Sprites.MENUBG = Game.LoadTexture("IMAGES/MAINMENUBG.bmp");
+
             Sprites.circle = Game.LoadTexture("IMAGES/circle.bmp");
             Sprites.jungle = new MappedSpriteSheet(game, "jungle.map");
             Sprites.basecart = Game.LoadTexture("IMAGES/basecart.bmp");

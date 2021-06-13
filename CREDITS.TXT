@@ -1,0 +1,29 @@
+﻿SUPER MONKEY BATHTUB RACING
+by Kat Purpy
+
+Thanks to TechPizza for writing sound streaming code!
+
+Created for MonoGameJam3 in one week!
+
+===============================================================
+
+STUFF CREDITS
+
+FONT: Comic Neue (OFL)
+
+PHOTOS ARE BY Jeremy Perkins, Silviadovega, Conscious Design, Tim Oun, Jordan Whitfield, Mana5280 from UNSPLASH.ORG
+SOUNDS ARE FROM FREESOUND.ORG (public domain)
+
+SONGS
+
+Bear with a guitar by Andrew Codeman (CC 4.0 BY)
+Spastic Mumblings by Jesse Spillane (CC 4.0 BY)
+Massive by Nolan Čapek (CC0)
+Boss Theme by sawsquarenoise (CC 4.0 BY)
+Murky sweet sweet style by Soft and Furious (CC0)
+Space Blockbuster by Soulbringer (CC 4.0 BY)
+The weekly fair by Komiku (CC0)
+
+===============================================================
+
+Thanks for playing!

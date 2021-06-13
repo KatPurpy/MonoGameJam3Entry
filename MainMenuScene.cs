@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,20 +14,23 @@ namespace MonoGameJam3Entry
 {
     class MainMenuScene : Scene
     {
-
+        IntPtr logo, gamelogo,background;
         IntPtr[] levelThumbnail = new IntPtr[0];
         int cutscenePage = 0;
 
         IntPtr[] currentCutScene = new IntPtr[0];
         IntPtr levelBlocked;
 
+        string credits = File.ReadAllText("CREDITS.TXT");
+
         public override void Enter()
         {
             levelThumbnail = new[] { Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE1),
             Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE2),
             Game.ImGuiRenderer.BindTexture(Assets.Sprites.RACE3)};
-            levelBlocked = Game.ImGuiRenderer.BindTexture(Assets.Sprites.@lock);
-            
+            logo = Game.ImGuiRenderer.BindTexture(Assets.Sprites.LOGO);
+            gamelogo = Game.ImGuiRenderer.BindTexture(Assets.Sprites.TITLE);
+            background = Game.ImGuiRenderer.BindTexture(Assets.Sprites.MENUBG);
         }
 
         public override void Leave()
@@ -36,6 +40,9 @@ namespace MonoGameJam3Entry
 
         ~MainMenuScene()
         {
+            Game.ImGuiRenderer.UnbindTexture(logo);
+            Game.ImGuiRenderer.UnbindTexture(gamelogo);
+            Game.ImGuiRenderer.UnbindTexture(background);
             foreach (var levelThumbnail in levelThumbnail)
             {
                 Game.ImGuiRenderer.UnbindTexture(levelThumbnail);
@@ -107,9 +114,20 @@ namespace MonoGameJam3Entry
             currentCutScene = frames.Select(t => Game.ImGuiRenderer.BindTexture(t)).ToArray();
 
         }
-
+        bool dummy1;
         public override void Draw(GameTime gameTime)
         {
+            {
+                System.Numerics.Vector2 logoSize = new System.Numerics.Vector2(128, 128) / 2;
+                System.Numerics.Vector2 logoPos = new(0.5f, 0.5f);
+                ImGui.GetBackgroundDrawList().AddImage(
+    logo,
+    ImGui.GetIO().DisplaySize * logoPos - logoSize,
+    ImGui.GetIO().DisplaySize * logoPos + logoSize
+    );
+                ImGui.GetBackgroundDrawList().AddText(ImGui.GetIO().DisplaySize * logoPos - System.Numerics.Vector2.UnitX * 121/2 + System.Numerics.Vector2.UnitY * 60, 0xFFFFFFFF,"Kat Purpy presents");
+            }
+            if (gameTime.TotalGameTime.TotalSeconds < 3) return;
             //int a = 0;
             //ImGui.Checkbox((a++).ToString(),ref    PlayerProfile.Race1Unlock                     );
 
@@ -138,8 +156,21 @@ namespace MonoGameJam3Entry
             //}return;
 
 
-           // ImGui.SetWindowFontScale(1);
-
+            // ImGui.SetWindowFontScale(1);
+            ImGui.GetBackgroundDrawList().AddImage(
+     background,
+     new(0, 0),
+     ImGui.GetIO().DisplaySize
+     );
+            {
+                System.Numerics.Vector2 gamelogoSize = new System.Numerics.Vector2(512, 128) / 2;
+                System.Numerics.Vector2 gameLogoPos = new(0.5f, 0.15f);
+                ImGui.GetBackgroundDrawList().AddImage(
+    gamelogo,
+    ImGui.GetIO().DisplaySize * gameLogoPos - gamelogoSize,
+    ImGui.GetIO().DisplaySize * gameLogoPos + gamelogoSize
+    );
+            }
 
 
             switch (screen) {
@@ -184,19 +215,33 @@ namespace MonoGameJam3Entry
                     if (butt("Play")) screen = Screen.SelectMode;
                     if (butt("Settings"))
                     {
-                        ImGui.OpenPopup("oof");
+                        ImGui.OpenPopup("Settings");
                     }
-                    
-                    if (ImGui.BeginPopupModal("oof"))
+                    dummy1 = true;
+                    if (ImGui.BeginPopupModal("Settings",ref dummy1, ImGuiWindowFlags.NoSavedSettings| ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse))
                     {
-                        ImGui.Text("Sorry but we ran out of budget for this :(");
+                        ImGui.Text("Sorry but we ran out of budget for this :(\nIf you want to erase progress just delete PLRSAV file, get it?");
                           if (butt("Understood. Have a nice day")) ImGui.CloseCurrentPopup();
                         ImGui.EndPopup();
                     }
 
-                    butt("Credits");
-                    if (butt("Exit")) screen = Screen.Goodbye;
+                    if (butt("Credits"))
+                    {
+                        ImGui.OpenPopup("CREDITS");
+                    }
 
+                    if (ImGui.BeginPopupModal("CREDITS", ref dummy1, ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse))
+                    {
+                        ImGui.Text(credits);
+                        ImGui.EndPopup();
+                    }
+
+
+                    if (butt("Exit"))
+                    {
+                        screen = Screen.Goodbye;
+                        Game._.Exit();
+                    }
      
 
                     ImGui.End();
@@ -331,7 +376,7 @@ namespace MonoGameJam3Entry
                 PlayerProfile.PlayedSpaceStoryEnding = true; PlayerProfile.Save();
             }
 
-            ImGui.GetBackgroundDrawList().AddText(new(0,720-18),Color.Black.PackedValue, "(c) Kat Purpy, 2021");
+            ImGui.GetBackgroundDrawList().AddText(new(0,720-18),Color.White.PackedValue, "(c) Kat Purpy, 2021");
             ;
         }
 
