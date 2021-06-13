@@ -1,9 +1,9 @@
 ﻿SUPER MONKEY BATHTUB RACING
 by Kat Purpy
 
-Thanks to TechPizza for writing sound streaming code!
-
 Created for MonoGameJam3 in one week!
+
+Thanks to TechPizza for helping writing sound streaming code.
 
 ===============================================================
 
