@@ -151,7 +151,7 @@ namespace MonoGameJam3Entry
                 Vector2 dirToTarget = AI_TargetPosition * Game.PixelsPerMeter - VisualPosition;
                 
                 
-                if(AI_Waypoints.Positions.Count > 1 && dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)
+                if(AI_Waypoints != null && AI_Waypoints.Positions.Count > 1 && dirToTarget.Length() < (AI_TurnThreshold  + Track_Waypoints.aiTriggerRadius) * Game.PixelsPerMeter)
                 {
                     AI_WaypointID++;
                     if (AI_RacingMode)

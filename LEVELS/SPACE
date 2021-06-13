@@ -1,0 +1,81 @@
+{
+  "entities": [
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": 0,
+        "Y": -460
+      },
+      "RacerID": 1,
+      "PlayerControlled": true
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": 337.33344,
+        "Y": -6
+      },
+      "RacerID": 2,
+      "PlayerControlled": false
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": -2.666565,
+        "Y": 322
+      },
+      "RacerID": 3,
+      "PlayerControlled": false
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": -343.9999,
+        "Y": 1.999939
+      },
+      "RacerID": 0,
+      "PlayerControlled": false
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": -241.33315,
+        "Y": -223.33342
+      },
+      "RacerID": 5,
+      "PlayerControlled": false
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": 182.66687,
+        "Y": -255.33331
+      },
+      "RacerID": 7,
+      "PlayerControlled": false
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": 214.66689,
+        "Y": 208.66669
+      },
+      "RacerID": 6,
+      "PlayerControlled": false
+    },
+    {
+      "type": "Bathtub",
+      "VisualPosition": {
+        "X": -209.33318,
+        "Y": 199.33334
+      },
+      "RacerID": 4,
+      "PlayerControlled": false
+    }
+  ],
+  "track": [
+    {
+      "type": "Track_Arena"
+    }
+  ]
+}

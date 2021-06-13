@@ -84,5 +84,9 @@ Positions[Math.Min(selected, Positions.Count - 1)] * Game.PixelsPerMeter; set { 
                 Positions.Add(ReadVector2(val));
             }
         }
+        public override void Destroy()
+        {
+            Dead = true;
+        }
     }
 }

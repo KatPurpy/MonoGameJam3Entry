@@ -51,7 +51,7 @@ namespace MonoGameJam3Entry
         }
 
         bool started;
-
+        Random random = new Random();
 
         static Track_Waypoints wayPoints;
 
@@ -141,8 +141,12 @@ namespace MonoGameJam3Entry
             },
             {
                 typeof(Track_FlowerField),
-                (_,_,_)=>new Track_FlowerField()
+                (_, _, _) => new Track_FlowerField()
             },
+            {
+                typeof(Track_Arena),
+                (_, world, _) => new Track_Arena(world)
+            }
         };
 
         public override void Update(GameTime gameTime)
@@ -243,9 +247,60 @@ namespace MonoGameJam3Entry
                 ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, new(640 - 3*30 / 2, 0), Color.White.PackedValue, string.Format("{0:00}:{1:00}",PlayerGoals,EnemyGoals));
 
             }
-            else if(wayPoints == null )
+            else if(!(WinFlag || LoseFlag) && wayPoints == null )
             {
                 ImGui.GetBackgroundDrawList().AddText(ImGui.GetFont(), ImGui.GetFontSize() * 3, new(640 - 3 * 30 / 2, 0), Color.Red.PackedValue, "KILL THEM ALL");
+                var s = em.SerializableEntities.Where(t=>t is Bathtub).Select(t=>(Bathtub)t).ToArray();
+                if (s.Count() > 1)
+                {
+                    foreach (var ent in s)
+                    {
+            
+
+                            if (ent.RealPosition.Length() > 100)
+                        {
+                            ent.Dead = true;
+                            if (ent.PlayerControlled) Lose();
+                            continue;
+                        }
+
+                        if (true || ent.RacerID % 2 == 0)
+                        {
+                            Vector2 targPos = Vector2.Zero;
+                            float dist = float.MinValue;
+                            for (int i = 0; i < s.Length; i++)
+                            {
+                                if (s[i] == ent) continue;
+                                float dist_;
+                                if (dist < (dist_ = (ent.VisualPosition - s[i].VisualPosition).Length()))
+                                {
+                                    targPos = s[i].RealPosition;
+                                    dist = dist_;
+                                }
+                            }
+
+                            ent.AI_TargetPosition = targPos + new Vector2((float)random.NextDouble() * 20);
+
+                            if (ent.RealPosition.Length() > 60)
+                            {
+                                ent.AI_TargetPosition = Vector2.Zero;
+                            }
+
+                        }
+                        else
+                        {
+                            try
+                            {
+                                ent.AI_TargetPosition = s.Where(s => s.PlayerControlled).First().RealPosition;
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                else if(s.Count() == 1)
+                {
+                    if (s.First().PlayerControlled) Win();
+                }
             }
             if (EditorMode)
             {
@@ -273,7 +328,7 @@ namespace MonoGameJam3Entry
                 {
                     
                     ImGuiUtils.BeginFixedWindow("Well done!", 200, 190);
-                    if (wayPoints.Positions.Count > 1)
+                    if (wayPoints != null && wayPoints.Positions.Count > 1)
                     {
                         ImGui.LabelText("", "     =====TIME=====");
                         for (int i = 0; i < LapTimers.Count; i++)

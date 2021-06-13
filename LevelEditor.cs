@@ -339,12 +339,18 @@ namespace MonoGameJam3Entry
             }
                 em.Clear();
             track.Clear();
-            if(!filename.EndsWith("LEVELS/SPACE")) track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
+            if (!filename.EndsWith("LEVELS\\SPACE"))
+            {
+                track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
+            }
             JsonDocument json = JsonDocument.Parse(File.ReadAllText(filename));
             Type typeByString(string s) => Type.GetType("MonoGameJam3Entry." + s);
 
-            wayPoints?.RestoreState(json.RootElement.GetProperty("waypoints"));
-
+            try
+            {
+                wayPoints?.RestoreState(json.RootElement.GetProperty("waypoints"));
+            }
+            catch { }
             foreach (var entityState in json.RootElement.GetProperty("entities").EnumerateArray())
             {
                 var type_str = entityState.GetProperty("type").GetString();

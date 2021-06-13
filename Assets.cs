@@ -15,6 +15,8 @@ namespace MonoGameJam3Entry
             public static Texture2D RACE2;
             public static Texture2D RACE3;
 
+            public static Texture2D space;
+
             public static Texture2D[] CUTSCENE_RACE_INTRO;
             public static Texture2D[] CUTSCENE_RACE_ENDING;
 
@@ -75,6 +77,7 @@ namespace MonoGameJam3Entry
             Sprites.RACE1 = Game.LoadTexture("IMAGES/RACE1.bmp");
             Sprites.RACE2 = Game.LoadTexture("IMAGES/RACE2.bmp");
             Sprites.RACE3 = Game.LoadTexture("IMAGES/RACE3.bmp");
+            Sprites.space = Game.LoadTexture("IMAGES/space.bmp");
 
             Sprites.CUTSCENE_RACE_INTRO = new[]
             {
