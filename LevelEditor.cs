@@ -339,7 +339,7 @@ namespace MonoGameJam3Entry
             }
                 em.Clear();
             track.Clear();
-            if (!filename.EndsWith("LEVELS\\SPACE"))
+            if (!filename.EndsWith("SPACE"))
             {
                 track.AddEntity(wayPoints = new Track_Waypoints() { camera = camera });
             }

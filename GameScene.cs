@@ -35,7 +35,7 @@ namespace MonoGameJam3Entry
 
         public static int PlayerGoals = 0;
         public static int EnemyGoals = 0;
-        public const int MaxGoals = 5;
+        public const int MaxGoals = 3;
 
         TimeSpan timeSinceLoad = new();
 
@@ -48,6 +48,7 @@ namespace MonoGameJam3Entry
         public static void Lose()
         {
             LoseFlag = true;
+            Assets.Sounds.ubad.Play();
         }
 
         bool started;
@@ -67,9 +68,9 @@ namespace MonoGameJam3Entry
             camera.Init();
             camera.Scale = Vector2.One * 0.5f;
             camera.VirtualRes = (800, 480);
-           // if(levelName != "LEVELS/SPACE")
-           // track.AddEntity(wayPoints = new Track_Waypoints());
-
+            // if(levelName != "LEVELS/SPACE")
+            // track.AddEntity(wayPoints = new Track_Waypoints());
+            wayPoints = null;
             started = EditorMode == true;
             if (EditorMode) InitEditor();
         }
@@ -90,7 +91,6 @@ namespace MonoGameJam3Entry
                         
                         CarTexture = Assets.Sprites.basecart,
                         PlayerControlled = true,
-                        CharacterTexture = Assets.Sprites.chr_monkey,
                         AI_Waypoints = GameScene.wayPoints,
                         camera = camera
                     }
@@ -185,7 +185,7 @@ namespace MonoGameJam3Entry
             {
                 //i don't flopping what magic dust does this work on
                 //but i don't have time to figure it out
-                
+                if (timeSinceLoad.Ticks == 0) Assets.Sounds.countdown.Play();
                 timeSinceLoad += time.ElapsedGameTime;
                 var _time = MathF.Abs((int)timeSinceLoad.TotalSeconds - 1 - 3);
                 camera.XY = em.SerializableEntities.Find(e => (e is Bathtub b) && b.PlayerControlled).VisualPosition;
@@ -378,7 +378,10 @@ namespace MonoGameJam3Entry
                         return;
                     }
                     ImGui.SameLine(90 + 53);
-                    ImGui.Button("No");
+                    if (ImGui.Button("No"))
+                    {
+                        Game._.SceneManager.SwitchScene(new MainMenuScene());
+                    };
                     ImGui.End();
                 }
 

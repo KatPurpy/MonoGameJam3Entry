@@ -44,15 +44,19 @@ namespace MonoGameJam3Entry
 
         public static Action DoAfterWin;
 
+        public StreamedSound currentMusic;
+
         public static void Win()
         {
+            
+            Assets.Sounds.yay.Play();
             DoAfterWin?.Invoke();
             PlayerProfile.Save();
         }
 
         protected override void Initialize()
         {
-            
+
             _ = this;
             SceneManager = new(this);
             IsMouseVisible = true;
@@ -63,11 +67,21 @@ namespace MonoGameJam3Entry
             ImGuiRenderer = new ImGuiRenderer(this);
             ImGuiRenderer.RebuildFontAtlas();
 
+            Disposed += Game_Disposed;
 
-            SceneManager.SwitchScene(new GameScene());
+            LoadMusic("SOUNDS/race1.ogg");
+            
+            currentMusic.Play();
+            currentMusic.sound.Volume = 0.5f;
+          //  SceneManager.SwitchScene(new GameScene());
+           
+            PlayerProfile.Load();
+            SceneManager.SwitchScene(new MainMenuScene());
+        }
 
-            //PlayerProfile.Load();
-            //SceneManager.SwitchScene(new MainMenuScene());
+        private void Game_Disposed(object sender, EventArgs e)
+        {
+            currentMusic?.Dispose();
         }
 
         protected override void LoadContent()
@@ -81,11 +95,12 @@ namespace MonoGameJam3Entry
 
         protected override void Update(GameTime gameTime)
         {
+            currentMusic?.Update();
             SceneManager.Update(gameTime);
             base.Update(gameTime);
         }
 
- 
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -105,7 +120,7 @@ namespace MonoGameJam3Entry
             ImGui.PushFont(fontPTR);
             ImGuiUtils.SetStyle();
             SceneManager.Draw(gameTime);
-            
+
             Game.ImGuiRenderer.AfterLayout();
             //cam.Scale = Vector2.One * PhysicsScale; 
 
@@ -115,9 +130,9 @@ namespace MonoGameJam3Entry
 
         protected override void OnExiting(object sender, EventArgs args)
         {
-            ss?.Dispose();
+            currentMusic?.Dispose();
+            base.OnExiting(sender, args);
         }
-
 
         public static Texture2D LoadTexture(string s)
         {
@@ -161,6 +176,11 @@ namespace MonoGameJam3Entry
             }
         }
 
-        public static StreamedSound LoadMusic(string s) => new(s);
+        public static StreamedSound LoadMusic(string s)
+        {
+            _.currentMusic?.Dispose();
+            
+            return _.currentMusic = new(s);
+        }
     }
 }

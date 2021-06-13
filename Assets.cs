@@ -29,6 +29,11 @@ namespace MonoGameJam3Entry
 
             public static Texture2D basecart;
             public static Texture2D chr_monkey;
+            public static Texture2D chr_crocodile;
+            public static Texture2D chr_rhino;
+            public static Texture2D chr_panther;
+            public static Texture2D chr_alien;
+
             public static Texture2D checkerboard;
             public static Texture2D @lock;
 
@@ -59,11 +64,13 @@ namespace MonoGameJam3Entry
             public static Dictionary<DecorationType, MappedSprite> decorMap;
         }
         public static class Sounds {
-            public static SoundEffect click;
 
-            public static SoundEffect sfx_wroom;
-            public static SoundEffect sfx_car_engine;
-            public static SoundEffect sfx_car_bonk;
+            public static SoundEffect lap;
+            public static SoundEffect yay;
+            public static SoundEffect ubad;
+            public static SoundEffect countdown;
+            public static SoundEffect kaboom;
+            public static SoundEffect enemygoal;
         }
 
         public static void Load(Game game)
@@ -72,6 +79,10 @@ namespace MonoGameJam3Entry
             Sprites.jungle = new MappedSpriteSheet(game, "jungle.map");
             Sprites.basecart = Game.LoadTexture("IMAGES/basecart.bmp");
             Sprites.chr_monkey = Game.LoadTexture("IMAGES/chr_monkey.bmp");
+            Sprites.chr_crocodile = Game.LoadTexture("IMAGES/chr_crocodile.bmp");
+            Sprites.chr_rhino = Game.LoadTexture("IMAGES/chr_rhino.bmp");
+            Sprites.chr_panther = Game.LoadTexture("IMAGES/chr_panther.bmp");
+            Sprites.chr_alien = Game.LoadTexture("IMAGES/chr_alien.bmp");
             Sprites.checkerboard = Game.LoadTexture("IMAGES/checkerboard.bmp");
             Sprites.@lock = Game.LoadTexture("IMAGES/lock.bmp");
             Sprites.RACE1 = Game.LoadTexture("IMAGES/RACE1.bmp");
@@ -138,6 +149,13 @@ namespace MonoGameJam3Entry
                 { DecorationType.flower7, Sprites.flower7 },
                 { DecorationType.flower8, Sprites.flower8 }
             };
+
+            Sounds.lap = Game.LoadSound("SOUNDS/lap.ogg");
+            Sounds.yay = Game.LoadSound("SOUNDS/yay.ogg");
+            Sounds.ubad = Game.LoadSound("SOUNDS/ubad.ogg");
+            Sounds.countdown = Game.LoadSound("SOUNDS/countdown.ogg");
+            Sounds.kaboom = Game.LoadSound("SOUNDS/kaboom.ogg");
+            Sounds.enemygoal = Game.LoadSound("SOUNDS/enemygoal.ogg");
         }
     }
 }

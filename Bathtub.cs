@@ -29,7 +29,14 @@ namespace MonoGameJam3Entry
     class Bathtub : Entity
     {
         public Texture2D CarTexture;
-        public Texture2D CharacterTexture;
+        Texture2D CharacterTexture =>
+            RacerID switch { 
+            0 => Assets.Sprites.chr_rhino,
+                1 => Assets.Sprites.chr_monkey,
+                2 => Assets.Sprites.chr_crocodile,
+                3 => Assets.Sprites.chr_panther,
+                _ => Assets.Sprites.chr_alien,
+            };
 
         public Vector2 RealPosition { get => physicsBody.Position;
         set
@@ -183,8 +190,9 @@ namespace MonoGameJam3Entry
             {
                 Laps++;
 
+                if (PlayerControlled) Assets.Sounds.lap.Play();
 
-                if(Laps == GameScene.GoalLaps)
+                    if (Laps == GameScene.GoalLaps)
                 {
                     if (RacerID == GameScene.PlayerID) {
                         GameScene.Win();

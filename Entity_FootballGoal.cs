@@ -1,6 +1,7 @@
 ﻿using DSastR.Core;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -52,6 +53,7 @@ namespace MonoGameJam3Entry
                 {
                     if (IsPlayerGoal)
                     {
+                        Assets.Sounds.enemygoal.Play();
                         GameScene.EnemyGoals++;
                         if(GameScene.EnemyGoals == GameScene.MaxGoals)
                         {
@@ -60,7 +62,7 @@ namespace MonoGameJam3Entry
                     }
                     else
                     {
-                        
+                        Assets.Sounds.lap.Play();
                         GameScene.PlayerGoals++;
                         if (GameScene.PlayerGoals == GameScene.MaxGoals)
                         {

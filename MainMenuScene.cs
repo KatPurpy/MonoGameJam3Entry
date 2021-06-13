@@ -195,7 +195,7 @@ namespace MonoGameJam3Entry
                     }
 
                     butt("Credits");
-                    if(butt("Exit")) throw new NotImplementedException();
+                    if (butt("Exit")) screen = Screen.Goodbye;
 
      
 
@@ -218,7 +218,7 @@ namespace MonoGameJam3Entry
                     break;
                 case Screen.Football:
                     ImGuiUtils.BeginFixedWindow("Wheelball",370,158);
-                    ImGui.Text("Rules am s1mple: the put ball the 0n enemy g0a1.\n5 goals.\nGood luck.");
+                    ImGui.Text("Rules am s1mple: the put ball the 0n enemy g0a1.\n3 goals.\nGood luck.");
                     if (ImGui.Button("<--")) screen = Screen.SelectMode;
                     ImGui.SameLine(300);
                     if (ImGui.Button("Proceed."))
@@ -227,6 +227,7 @@ namespace MonoGameJam3Entry
                         {
                             PlayerProfile.SpaceUnlock = true;
                         };
+                        Game.LoadMusic("SOUNDS/football.ogg").Play();
                         GameScene.StartLevel("LEVELS/FOOTBALL");
                     }
                     ImGui.End();
@@ -242,6 +243,7 @@ namespace MonoGameJam3Entry
                         {
                             PlayerProfile.SpaceComplete = true;
                         };
+                        Game.LoadMusic("SOUNDS/space.ogg").Play();
                         GameScene.StartLevel("LEVELS/SPACE");
                     }
                     ImGui.End();
@@ -255,6 +257,7 @@ namespace MonoGameJam3Entry
                         {
                             PlayerProfile.Race2Unlock = true;
                         };
+                        Game.LoadMusic("SOUNDS/race1.ogg").Play();
                         GameScene.StartLevel("LEVELS/RACE1");
                     }
                     ImGui.SameLine();
@@ -264,6 +267,7 @@ namespace MonoGameJam3Entry
                         {
                             PlayerProfile.Race3Unlock = true;
                         };
+                        Game.LoadMusic("SOUNDS/race2.ogg").Play();
                         GameScene.StartLevel("LEVELS/RACE2");
                     }
                     ImGui.SameLine();
@@ -273,6 +277,7 @@ namespace MonoGameJam3Entry
                         {
                             PlayerProfile.FootballUnlock = true;
                         };
+                        Game.LoadMusic("SOUNDS/race3.ogg").Play();
                         GameScene.StartLevel("LEVELS/RACE3");
                     }
 
@@ -291,14 +296,14 @@ namespace MonoGameJam3Entry
             if (screen == Screen.Race_SelectTrack && !PlayerProfile.PlayedRaceStoryIntro)
             {
                 Debug.WriteLine("MUST PLAY RACE INTRO CUTSCENE");
-                PrepareCutscene(CutsceneType.RaceStoryIntro);
                 PlayerProfile.PlayedRaceStoryIntro = true;
+                PrepareCutscene(CutsceneType.RaceStoryIntro);
                 PlayerProfile.Save();
             }
 
-            if (screen == Screen.Race_SelectTrack && !PlayerProfile.PlayedRaceStoryEnding)
+            if (screen == Screen.Race_SelectTrack && PlayerProfile.FootballUnlock && !PlayerProfile.PlayedRaceStoryEnding)
             {
-                Debug.WriteLine("MUST PLAY RACE INTRO CUTSCENE");
+                Debug.WriteLine("MUST PLAY RACE ENDING CUTSCENE");
                 PrepareCutscene(CutsceneType.RaceStoryEnding);
                 PlayerProfile.PlayedRaceStoryEnding = true; PlayerProfile.Save();
             }
@@ -310,10 +315,11 @@ namespace MonoGameJam3Entry
                 PlayerProfile.PlayedFootballStoryIntro = true; PlayerProfile.Save();
             }
 
-            if (screen == Screen.SpaceArena && PlayerProfile.SpaceUnlock && !PlayerProfile.PlayedFootballStoryEnding)
+            if (screen == Screen.Football && PlayerProfile.SpaceUnlock && !PlayerProfile.PlayedFootballStoryEnding)
             {
                 Debug.WriteLine("MUST PLAY FOOTBALL OUTRO CUTSCENE");
                 PrepareCutscene(CutsceneType.FootballStoryEnding);
+                Game.LoadMusic("SOUNDS/ohshit.ogg").Play();
                 PlayerProfile.PlayedFootballStoryEnding = true; PlayerProfile.Save();
             }
 
@@ -321,6 +327,7 @@ namespace MonoGameJam3Entry
             {
                 Debug.WriteLine("ENDING CUTSCENE MUST BE PLAYED");
                 PrepareCutscene(CutsceneType.SpaceStoryEnding);
+                Game.LoadMusic("SOUNDS/ending.ogg").Play();
                 PlayerProfile.PlayedSpaceStoryEnding = true; PlayerProfile.Save();
             }
 

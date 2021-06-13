@@ -16,7 +16,7 @@ namespace MonoGameJam3Entry
     public class StreamedSound : IDisposable
     {
         VorbisReader reader;
-        DynamicSoundEffectInstance sound;
+        public DynamicSoundEffectInstance sound;
         Thread thread;
 
         int samplesReady = 0;
@@ -73,6 +73,7 @@ namespace MonoGameJam3Entry
                     if (samplesReady == 0 && buffersToRead > 0)
                     {
                         Interlocked.Decrement(ref buffersToRead);
+                        decode:;
                         int readSamples = reader.ReadSamples(_readBuffer, 0, BufferSize);
                         if (readSamples > 0)
                         {
@@ -80,6 +81,11 @@ namespace MonoGameJam3Entry
                             Span<short> castSpan = MemoryMarshal.Cast<byte, short>(_castBuffer).Slice(0, readSamples);
                             FunnyAudioUtils.ConvertSingleToInt16(dataSpan, castSpan);
                             Interlocked.Add(ref samplesReady, readSamples);
+                        }
+                        else
+                        {
+                            reader.DecodedTime = TimeSpan.Zero;
+                            goto decode;
                         }
 
                     }
